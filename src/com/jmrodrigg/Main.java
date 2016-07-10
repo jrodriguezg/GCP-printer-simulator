@@ -8,8 +8,8 @@ import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import static com.jmrodrigg.GCPrinter.*;
@@ -77,13 +77,13 @@ public class Main {
         return false;
     }
 
-    private static void getJobs() {
+    private static List<PrintJob> getJobs() {
         Pair<Integer,String> response;
         try {
             response = fetch(oAuth.getAccessToken(), printerid);
         } catch (IOException ex) {
             System.out.println("IO Exception");
-            return;
+            return null;
         }
 
         if (response.first == HttpStatusCodes.STATUS_CODE_OK) {
@@ -91,31 +91,23 @@ public class Main {
 
             if (object.get("success").getAsBoolean()) {
 
-                JsonArray jobs = object.getAsJsonArray("jobs");
+                JsonArray jobsJson = object.getAsJsonArray("jobs");
 
-                System.out.println("Jobs Available (" + jobs.size() + ")");
+                System.out.println("Jobs Available (" + jobsJson.size() + ")");
                 System.out.println("--------------");
 
-                for (JsonElement obj : jobs) {
-                    String title = obj.getAsJsonObject().get("title").getAsString();
-                    String fileUrl = obj.getAsJsonObject().get("fileUrl").getAsString();
-                    String rasterUrl = obj.getAsJsonObject().get("rasterUrl").getAsString();
-                    int pages = obj.getAsJsonObject().get("numberOfPages").getAsInt();
+                List<PrintJob> jobs = new ArrayList<>();
 
-                    String contentType = obj.getAsJsonObject().get("contentType").getAsString();
-                    String status = obj.getAsJsonObject().get("status").getAsString();
-                    Date updateTime = new Date(obj.getAsJsonObject().get("updateTime").getAsLong());
-
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd - HH:mm");
-
-                    System.out.println(sdf.format(updateTime) + " - " + status + " - " + title + " - " + pages + " pages - " + contentType);
-                    System.out.println("\t File Url: " + fileUrl);
-                    System.out.println("\t Raster Url: " + rasterUrl);
-                    System.out.println("--------------");
+                for (JsonElement obj : jobsJson) {
+                    jobs.add(new PrintJob(obj));
                 }
+
+                return jobs;
 
             } else System.out.println("Error #" + object.get("errorCode").getAsInt() + ": " + object.get("message").getAsString());
         }
+
+        return null;
     }
 
     public static void main(String[] args) {
@@ -137,7 +129,11 @@ public class Main {
                     break;
                 case 2:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
-                    else getJobs();
+                    else {
+                        List<PrintJob> jobs = getJobs();
+                        if (jobs != null)
+                            for (PrintJob job : jobs) System.out.println(job.toString());
+                    }
                     break;
                 default:
                     System.out.println("Unknown action. Try again.");
