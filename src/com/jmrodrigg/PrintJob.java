@@ -12,6 +12,8 @@ public class PrintJob {
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd - HH:mm");
 
+    private String jobid;
+
     private String title;
     private int pages;
     private String contentType;
@@ -23,6 +25,7 @@ public class PrintJob {
     private String rasterUrl;
 
     public PrintJob(JsonElement jsonJob) {
+        jobid = jsonJob.getAsJsonObject().get("id").getAsString();
         title = jsonJob.getAsJsonObject().get("title").getAsString();
         fileUrl = jsonJob.getAsJsonObject().get("fileUrl").getAsString();
         rasterUrl = jsonJob.getAsJsonObject().get("rasterUrl").getAsString();
@@ -33,8 +36,31 @@ public class PrintJob {
         updateTime = new Date(jsonJob.getAsJsonObject().get("updateTime").getAsLong());
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getJobId() {
+        return jobid;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public int getPages() {
+        return pages;
+    }
+
+    public boolean isPDF() {
+        return contentType.equals("application/pdf");
+    }
+
     public String toString() {
-        return sdf.format(updateTime) + " - " + status + " - " + title + " - " + pages + " pages - " + contentType
+        return sdf.format(updateTime) + " - " + jobid + " - " + status
+            + "\n\t Title: " + title
+            + "\n\t Content-Type: " + contentType
+            + "\n\t Pages: " + pages
             + "\n\t File Url: " + fileUrl
             + "\n\t Raster Url: " + rasterUrl
             + "\n--------------";
