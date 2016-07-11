@@ -159,8 +159,8 @@ public class Main {
             System.out.println("| 2.- Claim an already registered printer.              |");
             System.out.println("| 3.- List jobs from previous printer.                  |");
             System.out.println("---------------------------------------------------------");
-            System.out.print("Choose any action: ");
 
+            System.out.print("Choose any action: ");
             int action = Integer.parseInt(new Scanner(System.in).next());
             System.out.println("");
 
@@ -176,8 +176,26 @@ public class Main {
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
                         List<PrintJob> jobs = getJobs();
-                        if (jobs != null)
-                            for (PrintJob job : jobs) System.out.println(job.toString());
+                        if (jobs != null) {
+                            int num = 1;
+                            for (PrintJob job : jobs) System.out.println("#" + (num++) + "-->" + job.toString());
+                        }
+
+                        System.out.print("Select job number to print one or 0 cancel the operation.");
+                        int jobId = Integer.parseInt(new Scanner(System.in).next());
+                        System.out.println("");
+
+                        if (jobId > 0) {
+                            PrintJob job = jobs.get(jobId-1);
+
+                            try {
+                                Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
+                                downloadFile(oAuth.getAccessToken(),job);
+
+                            } catch (IOException ex) {
+                                System.out.println("Error printing job.");
+                            }
+                        }
                     }
                     break;
                 default:

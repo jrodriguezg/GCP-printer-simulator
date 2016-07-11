@@ -5,11 +5,15 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.util.IOUtils;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.Pair;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -149,4 +153,38 @@ public class GCPrinter implements CloudPrintConsts {
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + FETCH), content).setHeaders(headers).execute();
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
+
+    public static Pair<Integer,String> getJobTicket(String access_token, String jobId) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-CloudPrint-Proxy","");
+        headers.setAuthorization("OAuth " + access_token);
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("jobid",jobId);
+        parameters.put("use_cjt","true");
+
+        UrlEncodedContent content = new UrlEncodedContent(parameters);
+
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + TICKET), content).setHeaders(headers).execute();
+        return new Pair<>(response.getStatusCode(),response.parseAsString());
+    }
+
+    public static void downloadFile(String access_token, PrintJob job) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-CloudPrint-Proxy","");
+        headers.setAuthorization("OAuth " + access_token);
+
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(job.getFileUrl()), new EmptyContent()).setHeaders(headers).execute();
+
+        if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+            InputStream is = response.getContent();
+            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + ".pdf"));
+            IOUtils.copy(is,fos);
+            fos.close();
+        } else System.out.println("Error downloading file.");
+    }
+
+
 }
