@@ -12,17 +12,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by jrodriguez on 8/07/16.
  */
-public class GCPrinter {
-
-    private static final String PRINT_URL = "https://www.google.com/cloudprint";
-    private static final String REGISTER = "/register";
-    private static final String FETCH = "/fetch";
+public class GCPrinter implements CloudPrintConsts {
 
     private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
     private static final JsonFactory JSON_FACTORY = new JacksonFactory();
@@ -115,7 +112,7 @@ public class GCPrinter {
                 "}" +
                 "}";
 
-        Files.write(Paths.get("capabilities.txt"), capabilities.getBytes());
+        Files.write(Paths.get("capabilities.txt"), capabilities.getBytes(), StandardOpenOption.WRITE);
         File file = new File("capabilities.txt");
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
@@ -127,12 +124,14 @@ public class GCPrinter {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> getAuthCode(String authUrl) throws IOException {
+    public static Pair<Integer,String> getAuthCode(String printerid) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
 
-        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(authUrl),new EmptyContent()).setHeaders(headers).execute();
+        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE,printerid,Credentials.CLIENT_ID);
+
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(get_auth_code_url),new EmptyContent()).setHeaders(headers).execute();
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 

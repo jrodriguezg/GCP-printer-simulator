@@ -33,11 +33,13 @@ public class OAuth {
     private long expiresInSecs;
 
 
-    public OAuth(String aCode) {
-        code = aCode;
+    public OAuth(String code, String refresh_token) {
+        this.code = code;
+        this.refresh_token = refresh_token;
+
     }
 
-    public boolean authorize() {
+    public boolean authorize(boolean refresh) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -46,8 +48,13 @@ public class OAuth {
         parameters.put("client_id",Credentials.CLIENT_ID);
         parameters.put("redirect_uri",redirect_uri);
         parameters.put("client_secret",Credentials.CLIENT_SECRET);
-        parameters.put("grant_type",GRANT_TYPE_AUTH);
-        parameters.put("code",code);
+        if (!refresh) {
+            parameters.put("grant_type",GRANT_TYPE_AUTH);
+            parameters.put("code",code);
+        } else {
+            parameters.put("grant_type",GRANT_TYPE_REFRESH);
+            parameters.put("refresh_token",refresh_token);
+        }
 
         UrlEncodedContent content = new UrlEncodedContent(parameters);
 
@@ -57,15 +64,21 @@ public class OAuth {
 
             JsonObject object = new JsonParser().parse(response.parseAsString()).getAsJsonObject();
             access_token = object.get("access_token").getAsString();
-            refresh_token = object.get("refresh_token").getAsString();
+            if (!refresh) refresh_token = object.get("refresh_token").getAsString();
             expiresInSecs = object.get("expires_in").getAsLong();
             return true;
 
-        } catch (IOException ex) { return false; }
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     public String getAccessToken() {
         return this.access_token;
+    }
+
+    public String getRefreshToken() {
+        return this.refresh_token;
     }
 
 }
