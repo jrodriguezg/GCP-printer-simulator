@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by jrodriguez on 8/07/16.
@@ -186,5 +187,61 @@ public class GCPrinter implements CloudPrintConsts {
         } else System.out.println("Error downloading file.");
     }
 
+    public static void printJob(String access_token, PrintJob job) throws IOException {
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-CloudPrint-Proxy","");
+        headers.setAuthorization("OAuth " + access_token);
+
+        // 1.- Update job status to "IN PROGRESS":
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("jobid",job.getJobId());
+        parameters.put("semantic_state_diff","{\"state\": {\"type\": \"IN_PROGRESS\"}}");
+
+        UrlEncodedContent content = new UrlEncodedContent(parameters);
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+
+        if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+            int i = 0;
+
+            try {
+                // 2.- For each page, update the count:
+                for (i=0; i<job.getPages(); i++) {
+                    Thread.sleep(5000);
+
+                    parameters = new HashMap<>();
+                    parameters.put("jobid", job.getJobId());
+                    parameters.put("semantic_state_diff", "{\"pages_printed\": " + (i + 1) + "}");
+
+                    content = new UrlEncodedContent(parameters);
+                    response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+                    if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK)
+                        System.out.println("Page " + (i + 1) + "printed.");
+                    else {
+                        // An error has occurred. Throw exception to abort the job.
+                        throw new Exception();
+                    }
+                }
+
+                // 3.- Set the job status to "DONE":
+                parameters = new HashMap<>();
+                parameters.put("jobid",job.getJobId());
+                parameters.put("semantic_state_diff","{\"state\": {\"type\": \"DONE\"},\n\"pages_printed\": "+ i +"}");
+
+                content = new UrlEncodedContent(parameters);
+                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+
+            } catch (Exception ex) {
+                System.out.println("Error printing job.");
+
+                // 3.- Set the job status to "DONE":
+                parameters = new HashMap<>();
+                parameters.put("jobid",job.getJobId());
+                parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"ERROR\"}},\n\"pages_printed\": "+ i +"}");
+
+                content = new UrlEncodedContent(parameters);
+                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+            }
+        }
+    }
 }

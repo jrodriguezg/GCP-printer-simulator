@@ -8,5 +8,6 @@ public interface CloudPrintConsts {
     String REGISTER = "/register";
     String FETCH = "/fetch";
     String TICKET = "/ticket";
+    String CONTROL = "/control";
     String GET_AUTH_CODE = "/getauthcode?printerid=%s&oauth_client_id=%s";
 }

@@ -191,6 +191,7 @@ public class Main {
                             try {
                                 Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
                                 downloadFile(oAuth.getAccessToken(),job);
+                                printJob(oAuth.getAccessToken(),job);
 
                             } catch (IOException ex) {
                                 System.out.println("Error printing job.");
