@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
+import com.sun.org.apache.xml.internal.serialize.Printer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -121,10 +122,12 @@ public class Main {
         return null;
     }
 
-    private static PrinterInfo claimPrinter() {
+    private static boolean claimPrinter() {
+        printerid = null;
+
         try {
             List<String> printers = Files.readAllLines(Paths.get("printers.txt"));
-            int i= 1;
+            int i = 1;
             for (String line : printers) {
                 System.out.println((i++) + "- " + line);
             }
@@ -134,13 +137,17 @@ public class Main {
             int num = Integer.parseInt(new Scanner(System.in).next());
             System.out.println("");
 
-            return new PrinterInfo(printers.get(num-1));
+            PrinterInfo pi = new PrinterInfo(printers.get(num-1));
+
+            // 2.- User claimed the printer. Let's get the access_token:
+            oAuth = new OAuth(pi.authorization_code,pi.refresh_token);
+            if (oAuth.authorize(true)) printerid = pi.printerid;
 
         } catch (IOException ex) {
             System.out.println("Error reading printers data.");
         }
 
-        return null;
+        return printerid != null;
     }
 
     public static void main(String[] args) {
@@ -162,21 +169,8 @@ public class Main {
                     registerPrinter();
                     break;
                 case 2:
-                    PrinterInfo pi = claimPrinter();
-                    if (pi != null) {
-                        // 2.- User claimed the printer. Let's get the access_token:
-                        oAuth = new OAuth(pi.authorization_code,pi.refresh_token);
-
-                        boolean authorized = oAuth.authorize(true);
-
-                        if (authorized) {
-                            System.out.println("Printer claimed successfully.");
-                            printerid = pi.printerid;
-                        } else {
-                            System.out.println("Couldn't retrieve printer.");
-                            printerid = null;
-                        }
-                    }
+                    if (claimPrinter()) System.out.println("Printer claimed successfully.");
+                    else System.out.println("Couldn't retrieve printer.");
                     break;
                 case 3:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
