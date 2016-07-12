@@ -135,7 +135,7 @@ public class GCPrinter implements CloudPrintConsts {
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
 
-        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE,printerid,Credentials.CLIENT_ID);
+        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE,printerid,Credentials.getClientID());
 
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(get_auth_code_url),new EmptyContent()).setHeaders(headers).execute();
         return new Pair<>(response.getStatusCode(),response.parseAsString());

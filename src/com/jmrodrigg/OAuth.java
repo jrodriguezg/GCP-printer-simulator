@@ -46,9 +46,9 @@ public class OAuth {
         headers.put("X-CloudPrint-Proxy","");
 
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("client_id",Credentials.CLIENT_ID);
+        parameters.put("client_id",Credentials.getClientID());
         parameters.put("redirect_uri",redirect_uri);
-        parameters.put("client_secret",Credentials.CLIENT_SECRET);
+        parameters.put("client_secret",Credentials.getClientSecret());
         if (!refresh) {
             parameters.put("grant_type",GRANT_TYPE_AUTH);
             parameters.put("code",code);
