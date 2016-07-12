@@ -10,3 +10,4 @@ gen
 .idea/
 GCP-printer-simulator.iml
 out/
+/res/keys/api_key.json
