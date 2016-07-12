@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Author: jrodriguezg
@@ -210,9 +211,15 @@ public class GCPrinter implements CloudPrintConsts {
 
                     content = new UrlEncodedContent(parameters);
                     response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
-                    if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK)
+                    if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
                         System.out.println("Page " + (i + 1) + " printed.");
-                    else {
+
+                        if ((i+1) < job.getPages()) {
+                            System.out.print("(C)ontinue or (A)bort? ");
+                            String action = new Scanner(System.in).next();
+                            if (action.charAt(0) == 'A') throw new Exception();
+                        }
+                    } else {
                         // An error has occurred. Throw exception to abort the job.
                         throw new Exception();
                     }
@@ -227,12 +234,12 @@ public class GCPrinter implements CloudPrintConsts {
                 response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
 
             } catch (Exception ex) {
-                System.out.println("Error printing job.");
+                System.out.println("Print job aborted.");
 
                 // 3.- Set the job status to "DONE":
                 parameters = new HashMap<>();
                 parameters.put("jobid",job.getJobId());
-                parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"ERROR\"}},\n\"pages_printed\": "+ i +"}");
+                parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"CANCELLED\"}},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
                 response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
