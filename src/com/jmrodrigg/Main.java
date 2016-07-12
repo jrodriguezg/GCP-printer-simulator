@@ -94,11 +94,13 @@ public class Main {
 
     private static List<PrintJob> getJobs() {
         Pair<Integer,String> response;
+        List<PrintJob> jobs = new ArrayList<>();
+
         try {
             response = fetch(oAuth.getAccessToken(), printerid);
         } catch (IOException ex) {
             System.out.println("IO Exception");
-            return null;
+            return jobs;
         }
 
         if (response.first == HttpStatusCodes.STATUS_CODE_OK) {
@@ -111,8 +113,6 @@ public class Main {
                 System.out.println("Jobs Available (" + jobsJson.size() + ")");
                 System.out.println("--------------");
 
-                List<PrintJob> jobs = new ArrayList<>();
-
                 for (JsonElement obj : jobsJson) {
                     jobs.add(new PrintJob(obj));
                 }
@@ -122,7 +122,7 @@ public class Main {
             } else System.out.println("Error #" + object.get("errorCode").getAsInt() + ": " + object.get("message").getAsString());
         }
 
-        return null;
+        return jobs;
     }
 
     private static boolean claimPrinter() {
@@ -179,27 +179,28 @@ public class Main {
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
                         List<PrintJob> jobs = getJobs();
-                        if (jobs != null) {
+                        if (jobs.size() > 0) {
                             int num = 1;
                             for (PrintJob job : jobs) System.out.println("#" + (num++) + "-->" + job.toString());
-                        }
 
-                        System.out.print("Select job number to print one or 0 cancel the operation.");
-                        int jobId = Integer.parseInt(new Scanner(System.in).next());
-                        System.out.println("");
+                            System.out.print("Select job number to print one or 0 cancel the operation.");
+                            int jobId = Integer.parseInt(new Scanner(System.in).next());
 
-                        if (jobId > 0) {
-                            PrintJob job = jobs.get(jobId-1);
+                            System.out.println("");
 
-                            try {
-                                Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
-                                downloadFile(oAuth.getAccessToken(),job);
-                                printJob(oAuth.getAccessToken(),job);
+                            if (jobId > 0) {
+                                PrintJob job = jobs.get(jobId-1);
 
-                            } catch (IOException ex) {
-                                System.out.println("Error printing job.");
+                                try {
+                                    Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
+                                    downloadFile(oAuth.getAccessToken(),job);
+                                    printJob(oAuth.getAccessToken(),job);
+
+                                } catch (IOException ex) {
+                                    System.out.println("Error printing job.");
+                                }
                             }
-                        }
+                        } else System.out.println("No jobs in printer queue.");
                     }
                     break;
                 default:
