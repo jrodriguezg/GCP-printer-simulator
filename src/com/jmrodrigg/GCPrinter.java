@@ -2,15 +2,10 @@ package com.jmrodrigg;
 
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.http.json.JsonHttpContent;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
-import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.client.util.IOUtils;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.internal.Pair;
 
 import java.io.*;
@@ -19,7 +14,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Author: jrodriguezg
@@ -135,7 +129,7 @@ public class GCPrinter implements CloudPrintConsts {
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
 
-        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE,printerid,Credentials.getClientID());
+        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE_URL,printerid,Credentials.getClientID());
 
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(get_auth_code_url),new EmptyContent()).setHeaders(headers).execute();
         return new Pair<>(response.getStatusCode(),response.parseAsString());
@@ -217,7 +211,7 @@ public class GCPrinter implements CloudPrintConsts {
                     content = new UrlEncodedContent(parameters);
                     response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
                     if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK)
-                        System.out.println("Page " + (i + 1) + "printed.");
+                        System.out.println("Page " + (i + 1) + " printed.");
                     else {
                         // An error has occurred. Throw exception to abort the job.
                         throw new Exception();
@@ -243,6 +237,25 @@ public class GCPrinter implements CloudPrintConsts {
                 content = new UrlEncodedContent(parameters);
                 response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
             }
+        }
+    }
+
+    public static void updatePrinterState(String access_token, String printerId, String printerstate) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-CloudPrint-Proxy","");
+        headers.setAuthorization("OAuth " + access_token);
+
+        // 1.- Update job status to "IN PROGRESS":
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("printerid",printerId);
+        parameters.put("semantic_state_diff","{\"printer\": {\"state\": \" " + printerstate + "\"}}");
+
+        UrlEncodedContent content = new UrlEncodedContent(parameters);
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + UPDATE), content).setHeaders(headers).execute();
+
+        if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+
         }
     }
 }

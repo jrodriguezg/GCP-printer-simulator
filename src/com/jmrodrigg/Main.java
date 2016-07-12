@@ -161,6 +161,7 @@ public class Main {
             System.out.println("| 1.- Register new printer.                             |");
             System.out.println("| 2.- Claim an already registered printer.              |");
             System.out.println("| 3.- List jobs from previous printer.                  |");
+            System.out.println("| 4.- Update printer state.                             |");
             System.out.println("---------------------------------------------------------");
 
             System.out.print("Choose any action: ");
@@ -183,7 +184,7 @@ public class Main {
                             int num = 1;
                             for (PrintJob job : jobs) System.out.println("#" + (num++) + "-->" + job.toString());
 
-                            System.out.print("Select job number to print one or 0 cancel the operation.");
+                            System.out.print("Select job number to print one or 0 cancel the operation: ");
                             int jobId = Integer.parseInt(new Scanner(System.in).next());
 
                             System.out.println("");
@@ -201,6 +202,18 @@ public class Main {
                                 }
                             }
                         } else System.out.println("No jobs in printer queue.");
+                    }
+                    break;
+                case 4:
+                    if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
+                    else {
+                        try {
+                            String printer_state = "IDLE";
+                            updatePrinterState(oAuth.getAccessToken(), printerid, printer_state);
+                            System.out.println("Printer State updated to " + printer_state + ".");
+                        } catch (IOException ex) {
+                            System.out.println("Error updating printer state.");
+                        }
                     }
                     break;
                 default:
