@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Created by jrodriguez on 8/07/16.
+ * Author: jrodriguezg
+ * Date: 7/08/16
  */
 public class GCPrinter implements CloudPrintConsts {
 

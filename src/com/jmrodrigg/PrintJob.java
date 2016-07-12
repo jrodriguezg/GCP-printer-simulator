@@ -6,7 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Created by jrodriguez on 10/07/16.
+ * Author: jrodriguezg
+ * Date: 7/10/16
  */
 public class PrintJob {
 

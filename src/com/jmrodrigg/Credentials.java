@@ -1,7 +1,8 @@
 package com.jmrodrigg;
 
 /**
- * Created by jrodriguez on 10/07/16.
+ * Author: jrodriguezg
+ * Date: 7/10/16.
  */
 public class Credentials {
     public static final String CLIENT_ID = "962373520782-5tfa76e0i68aeqpgcasnrkr6h3lrcdgp.apps.googleusercontent.com";

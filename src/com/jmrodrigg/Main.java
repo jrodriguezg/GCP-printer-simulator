@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
-import com.sun.org.apache.xml.internal.serialize.Printer;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,6 +17,10 @@ import java.util.Scanner;
 
 import static com.jmrodrigg.GCPrinter.*;
 
+/**
+ * Author: jrodriguezg
+ * Date: 7/08/16
+ */
 public class Main {
 
     private static OAuth oAuth;

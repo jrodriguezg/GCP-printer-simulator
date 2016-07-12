@@ -1,7 +1,8 @@
 package com.jmrodrigg;
 
 /**
- * Created by jrodriguezg on 7/11/16.
+ * Author: jrodriguezg
+ * Date: 7/11/16
  */
 public interface CloudPrintConsts {
     String PRINT_URL = "https://www.google.com/cloudprint";

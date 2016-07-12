@@ -1,7 +1,8 @@
 package com.jmrodrigg;
 
 /**
- * Created by jrodriguezg on 7/11/16.
+ * Author: jrodriguezg
+ * Date: 7/11/16
  */
 public class PrinterInfo {
     String printerid;

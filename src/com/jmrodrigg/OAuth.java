@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by jrodriguez on 10/07/16.
+ * Author: jrodriguezg
+ * Date: 7/10/16
  */
 public class OAuth {
 
