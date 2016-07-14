@@ -130,22 +130,25 @@ public class Main {
 
         try {
             List<String> printers = Files.readAllLines(Paths.get("printers.txt"));
-            int i = 1;
-            for (String line : printers) {
-                System.out.println((i++) + "- " + line);
+            if (!printers.isEmpty()) {
+                int i = 1;
+                for (String line : printers) {
+                    System.out.println((i++) + "- " + line);
+                }
+                System.out.println("--------------");
+                System.out.print("Pick one: ");
+
+                int num = Integer.parseInt(new Scanner(System.in).next());
+                System.out.println("");
+
+                PrinterInfo pi = new PrinterInfo(printers.get(num - 1));
+
+                // 2.- User claimed the printer. Let's get the access_token:
+                oAuth = new OAuth(pi.authorization_code, pi.refresh_token);
+                if (oAuth.authorize(true)) printerid = pi.printerid;
+            } else {
+                System.out.print("There are no printers on the list.");
             }
-            System.out.println("--------------");
-            System.out.print("Pick one: ");
-
-            int num = Integer.parseInt(new Scanner(System.in).next());
-            System.out.println("");
-
-            PrinterInfo pi = new PrinterInfo(printers.get(num-1));
-
-            // 2.- User claimed the printer. Let's get the access_token:
-            oAuth = new OAuth(pi.authorization_code,pi.refresh_token);
-            if (oAuth.authorize(true)) printerid = pi.printerid;
-
         } catch (IOException ex) {
             System.out.println("Error reading printers data.");
         }
@@ -156,6 +159,7 @@ public class Main {
     public static void main(String[] args) {
 
         do {
+            System.out.println("");
             System.out.println("-------------------------Actions-------------------------");
             System.out.println("---------------------------------------------------------");
             System.out.println("| 1.- Register new printer.                             |");
