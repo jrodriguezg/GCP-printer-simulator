@@ -52,7 +52,7 @@ public class GCPrinter implements CloudPrintConsts {
         parameters.put("semantic_state","{" +
                 "\"version\": \"1.0\"," +
                 "\"printer\": {" +
-                "\"state\": \"STOPPED\"," +
+                "\"state\": \"IDLE\"," +
                 "\"marker_state\": {" +
                 "\"item\": [" +
                 "{\"vendor_id\": \"black\",\"state\": \"EXHAUSTED\",\"level_percent\": 0}," +
@@ -247,7 +247,7 @@ public class GCPrinter implements CloudPrintConsts {
         }
     }
 
-    public static void updatePrinterState(String access_token, String printerId, String printerstate) throws IOException {
+    public static Pair<Integer,String> updatePrinterState(String access_token, String printerId, String printerstate) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -261,8 +261,21 @@ public class GCPrinter implements CloudPrintConsts {
         UrlEncodedContent content = new UrlEncodedContent(parameters);
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + UPDATE), content).setHeaders(headers).execute();
 
-        if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+        return new Pair<>(response.getStatusCode(),response.parseAsString());
+    }
 
-        }
+    public static Pair<Integer,String> printer(String access_token,String printerid) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.put("X-CloudPrint-Proxy","");
+        headers.setAuthorization("OAuth " + access_token);
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("printerid",printerid);
+
+        UrlEncodedContent content = new UrlEncodedContent(parameters);
+
+        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + PRINTER), content).setHeaders(headers).execute();
+        return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 }
