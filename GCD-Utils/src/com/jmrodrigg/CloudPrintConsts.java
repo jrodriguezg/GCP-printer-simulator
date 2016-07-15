@@ -14,6 +14,7 @@ public interface CloudPrintConsts {
     String FETCH = "/fetch";
     String LIST = "/list";
     String REGISTER = "/register";
+    String SEARCH = "/search";
     String TICKET = "/ticket";
     String UPDATE = "/update";
 }
