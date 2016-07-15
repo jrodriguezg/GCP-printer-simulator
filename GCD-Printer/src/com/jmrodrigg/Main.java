@@ -23,7 +23,6 @@ import static com.jmrodrigg.GCPrinter.*;
  */
 public class Main {
 
-    private static InputStream in = Main.class.getClassLoader().getResourceAsStream("keys/api_key.json");
     private static OAuth oAuth;
 
     private static Credentials credentials = new Credentials(Main.class.getClassLoader().getResourceAsStream("keys/api_key.json"));
