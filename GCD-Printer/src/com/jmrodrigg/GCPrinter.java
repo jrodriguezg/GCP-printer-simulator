@@ -1,10 +1,6 @@
 package com.jmrodrigg;
 
 import com.google.api.client.http.*;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.JsonObjectParser;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.client.util.IOUtils;
 import com.google.gson.internal.Pair;
 
@@ -16,16 +12,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import static com.jmrodrigg.Common.requestFactory;
+
 /**
  * Author: jrodriguezg
  * Date: 7/08/16
  */
 public class GCPrinter implements CloudPrintConsts {
-
-    private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
-
-    private static final HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(request -> request.setParser(new JsonObjectParser(JSON_FACTORY)));
 
     public static Pair<Integer,String> register() throws IOException {
 
@@ -125,12 +118,12 @@ public class GCPrinter implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> getAuthCode(String printerid) throws IOException {
+    public static Pair<Integer,String> getAuthCode(String printerid, String clientid) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
 
-        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE_URL,printerid,Credentials.getClientID());
+        String get_auth_code_url = String.format(GCPrinter.PRINT_URL + GCPrinter.GET_AUTH_CODE_URL,printerid,clientid);
 
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(get_auth_code_url),new EmptyContent()).setHeaders(headers).execute();
         return new Pair<>(response.getStatusCode(),response.parseAsString());

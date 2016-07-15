@@ -1,25 +1,31 @@
 package com.jmrodrigg;
 
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.http.*;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.JsonObjectParser;
-import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.jmrodrigg.Common.HTTP_TRANSPORT;
+import static com.jmrodrigg.Common.JSON_FACTORY;
 
 /**
  * Author: jrodriguezg
  * Date: 7/10/16
  */
 public class OAuth {
-
-    private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
     private static final String OAUTH_URL = "https://accounts.google.com/o/oauth2/token";
     private final String GRANT_TYPE_AUTH = "authorization_code";
@@ -32,22 +38,34 @@ public class OAuth {
     private String refresh_token;
     private long expiresInSecs;
 
+    private Credentials credentials;
 
-    public OAuth(String code, String refresh_token) {
+    public OAuth(String code, String refresh_token,InputStream json_url) {
+        credentials = new Credentials(json_url);
+
         this.code = code;
         this.refresh_token = refresh_token;
+    }
 
+    public void setAuthorizationCode(String code) {
+        this.code = code;
+    }
+
+    public void setRefreshToken(String refresh_token) {
+        this.refresh_token = refresh_token;
     }
 
     public boolean authorize(boolean refresh) {
+
+        // TODO check null credentials,code,refresh_token
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
 
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("client_id",Credentials.getClientID());
+        parameters.put("client_id",credentials.getClientID());
         parameters.put("redirect_uri",redirect_uri);
-        parameters.put("client_secret",Credentials.getClientSecret());
+        parameters.put("client_secret",credentials.getClientSecret());
         if (!refresh) {
             parameters.put("grant_type",GRANT_TYPE_AUTH);
             parameters.put("code",code);
@@ -73,6 +91,10 @@ public class OAuth {
         }
     }
 
+    public Credentials getCredentials() {
+        return credentials;
+    }
+
     public String getAccessToken() {
         return this.access_token;
     }
@@ -80,5 +102,7 @@ public class OAuth {
     public String getRefreshToken() {
         return this.refresh_token;
     }
+
+
 
 }
