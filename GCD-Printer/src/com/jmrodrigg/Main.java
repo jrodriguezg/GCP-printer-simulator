@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -23,6 +23,7 @@ import static com.jmrodrigg.GCPrinter.*;
  */
 public class Main {
 
+    private static InputStream in = Main.class.getClassLoader().getResourceAsStream("keys/api_key.json");
     private static OAuth oAuth;
 
     private static String printerid, authorization_code, email;
@@ -53,7 +54,7 @@ public class Main {
 
             try {
                 // 2.- User claimed the printer. Let's get the auth code:
-                response = getAuthCode(printer_id.getAsString());
+                response = getAuthCode(printer_id.getAsString(),oAuth.getCredentials().getClientID());
             } catch (IOException ex) {
                 System.out.println("IO Exception");
                 printerid = null;
@@ -70,7 +71,7 @@ public class Main {
 
                 System.out.println("Printer registered to user " + email);
 
-                oAuth = new OAuth(authorization_code,null);
+                oAuth = new OAuth(authorization_code,null,in);
 
                 if (oAuth.authorize(false)) {
                     System.out.println("Access token received: " + oAuth.getAccessToken());
@@ -144,7 +145,7 @@ public class Main {
                 PrinterInfo pi = new PrinterInfo(printers.get(num - 1));
 
                 // 2.- User claimed the printer. Let's get the access_token:
-                oAuth = new OAuth(pi.authorization_code, pi.refresh_token);
+                oAuth = new OAuth(pi.authorization_code, pi.refresh_token, in);
                 if (oAuth.authorize(true)) printerid = pi.printerid;
             } else {
                 System.out.print("There are no printers on the list.");
