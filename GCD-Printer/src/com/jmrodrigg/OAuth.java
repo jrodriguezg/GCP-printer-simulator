@@ -38,11 +38,7 @@ public class OAuth {
     private String refresh_token;
     private long expiresInSecs;
 
-    private Credentials credentials;
-
-    public OAuth(String code, String refresh_token,InputStream json_url) {
-        credentials = new Credentials(json_url);
-
+    public OAuth(String code, String refresh_token) {
         this.code = code;
         this.refresh_token = refresh_token;
     }
@@ -55,7 +51,7 @@ public class OAuth {
         this.refresh_token = refresh_token;
     }
 
-    public boolean authorize(boolean refresh) {
+    public boolean authorize(boolean refresh, Credentials credentials) {
 
         // TODO check null credentials,code,refresh_token
 
@@ -89,10 +85,6 @@ public class OAuth {
         } catch (IOException ex) {
             return false;
         }
-    }
-
-    public Credentials getCredentials() {
-        return credentials;
     }
 
     public String getAccessToken() {

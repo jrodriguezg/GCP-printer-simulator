@@ -26,6 +26,8 @@ public class Main {
     private static InputStream in = Main.class.getClassLoader().getResourceAsStream("keys/api_key.json");
     private static OAuth oAuth;
 
+    private static Credentials credentials = new Credentials(Main.class.getClassLoader().getResourceAsStream("keys/api_key.json"));
+
     private static String printerid, authorization_code, email;
 
     private static boolean registerPrinter() {
@@ -33,7 +35,7 @@ public class Main {
         try {
             // 1. Register printer:
             response = register();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("IO Exception");
             printerid = null;
             return false;
@@ -54,7 +56,7 @@ public class Main {
 
             try {
                 // 2.- User claimed the printer. Let's get the auth code:
-                response = getAuthCode(printer_id.getAsString(),oAuth.getCredentials().getClientID());
+                response = getAuthCode(printer_id.getAsString(),credentials.getClientID());
             } catch (IOException ex) {
                 System.out.println("IO Exception");
                 printerid = null;
@@ -71,9 +73,9 @@ public class Main {
 
                 System.out.println("Printer registered to user " + email);
 
-                oAuth = new OAuth(authorization_code,null,in);
+                oAuth = new OAuth(authorization_code,null);
 
-                if (oAuth.authorize(false)) {
+                if (oAuth.authorize(false,credentials)) {
                     System.out.println("Access token received: " + oAuth.getAccessToken());
 
                     try {
@@ -145,8 +147,8 @@ public class Main {
                 PrinterInfo pi = new PrinterInfo(printers.get(num - 1));
 
                 // 2.- User claimed the printer. Let's get the access_token:
-                oAuth = new OAuth(pi.authorization_code, pi.refresh_token, in);
-                if (oAuth.authorize(true)) printerid = pi.printerid;
+                oAuth = new OAuth(pi.authorization_code, pi.refresh_token);
+                if (oAuth.authorize(true,credentials)) printerid = pi.printerid;
             } else {
                 System.out.print("There are no printers on the list.");
             }

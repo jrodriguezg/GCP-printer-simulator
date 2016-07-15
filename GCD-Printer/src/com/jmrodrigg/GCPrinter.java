@@ -5,6 +5,7 @@ import com.google.api.client.util.IOUtils;
 import com.google.gson.internal.Pair;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -20,7 +21,7 @@ import static com.jmrodrigg.Common.requestFactory;
  */
 public class GCPrinter implements CloudPrintConsts {
 
-    public static Pair<Integer,String> register() throws IOException {
+    public static Pair<Integer,String> register() throws IOException, URISyntaxException {
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("name","Juanma GCD Printer");
@@ -106,8 +107,9 @@ public class GCPrinter implements CloudPrintConsts {
                 "}" +
                 "}";
 
-        Files.write(Paths.get("capabilities.txt"), capabilities.getBytes(), StandardOpenOption.WRITE);
-        File file = new File("capabilities.txt");
+        File file = new File("GCD-Printer/samples/capabilities.txt");
+
+        Files.write(Paths.get("GCD-Printer/samples/capabilities.txt"), capabilities.getBytes(), StandardOpenOption.WRITE);
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);
