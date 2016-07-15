@@ -7,7 +7,6 @@ import com.google.api.client.json.JsonObjectParser;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.internal.Pair;
 
 import java.io.IOException;
 import java.util.HashMap;
