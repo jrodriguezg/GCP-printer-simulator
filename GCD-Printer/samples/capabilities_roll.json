@@ -27,6 +27,12 @@
       "default": 1,
       "max": 100
     },
+    "margins": {
+      "option": [
+          {"type": "STANDARD", "top_microns": 500, "right_microns": 500, "bottom_microns": 500, "left_microns": 500, "is_default": true},
+          {"type": "BORDERLESS", "top_microns": 0, "right_microns": 0, "bottom_microns": 0, "left_microns": 0}
+        ]
+    },
     "media_size": {
       "option": [
         {"custom_display_name": "ROLL_24", "name": "CUSTOM", "width_microns": 609600, "is_continuous_feed": true, "is_default": true},
