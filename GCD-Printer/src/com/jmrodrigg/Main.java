@@ -29,11 +29,11 @@ public class Main {
 
     private static String printerid, authorization_code, email;
 
-    private static boolean registerPrinter() {
+    private static boolean registerPrinter(boolean is_roll) {
         Pair<Integer,String> response;
         try {
             // 1. Register printer:
-            response = register();
+            response = register(is_roll);
         } catch (Exception ex) {
             System.out.println("IO Exception");
             printerid = null;
@@ -177,7 +177,11 @@ public class Main {
 
             switch (action) {
                 case 1:
-                    registerPrinter();
+                    System.out.print("(S)heet printer or (R)oll printer? ");
+                    String type = new Scanner(System.in).next();
+                    System.out.println("");
+
+                    registerPrinter(type.equals("R"));
                     break;
                 case 2:
                     if (claimPrinter()) System.out.println("Printer claimed successfully.");
