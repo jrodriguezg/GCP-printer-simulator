@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 import static com.jmrodrigg.GCPClient.printer;
 import static com.jmrodrigg.GCPClient.search;
+import static com.jmrodrigg.GCPClient.submit;
 
 /**
  * Author: jrodriguezg
@@ -37,6 +38,7 @@ public class Main {
                 System.out.println("---------------------------------------------------------");
                 System.out.println("| 1.- List printers.                                    |");
                 System.out.println("| 2.- Show capabilities for a printer.                  |");
+                System.out.println("| 3.- Submit a job.                                     |");
                 System.out.println("---------------------------------------------------------");
 
                 System.out.print("Choose any action: ");
@@ -45,22 +47,30 @@ public class Main {
 
                 switch (action) {
                     case 1:
-                        searchPrinters();
-                        break;
                     case 2:
+                    case 3:
                         searchPrinters();
 
-                        System.out.print("Select a printer number to request its capabilties: ");
-                        int printernum = Integer.parseInt(new Scanner(System.in).next());
-                        System.out.println("");
+                        if (action == 2) {
+                            System.out.print("Select a printer to request its capabilties: ");
+                            int printernum = Integer.parseInt(new Scanner(System.in).next());
+                            System.out.println("");
 
-                        PrinterCapabilities caps = requestCapabilities(printers.get(printernum).getPrinterId());
+                            PrinterCapabilities caps = requestCapabilities(printers.get(printernum).getPrinterId());
+                            if (caps.getMediaSizeList().size() > 0) {
+                                System.out.println("Media Sizes:");
+                                for (PrinterCapabilities.MediaSize ms : caps.getMediaSizeList()) System.out.println(ms.toString());
+                            } else System.out.println("no Media Size info.");
 
-                        if (caps.getMediaSizeList().size() > 0) {
-                            System.out.println("Media Sizes:");
-                            for (PrinterCapabilities.MediaSize ms : caps.getMediaSizeList()) System.out.println(ms.toString());
-                        } else System.out.println("no Media Size info.");
+                        } else if (action == 3) {
+                            System.out.print("Select a printer to submit the job to: ");
+                            int printernum = Integer.parseInt(new Scanner(System.in).next());
+                            System.out.println("");
 
+                            if (submitJob(printers.get(printernum).getPrinterId())) System.out.println("Job sent successfully.");
+                            else System.out.println("Error while submitting job.");
+
+                        }
                         break;
                     default:
                         System.out.println("Unknown action. Try again.");
@@ -70,6 +80,22 @@ public class Main {
             }while (true);
 
         } else System.out.print("Error: Unauthorized.");
+    }
+
+    private static boolean submitJob(String printerid) {
+        boolean result = false;
+
+        try {
+            Pair<Integer, String> response = submit(oAuth.getAccessToken(), printerid);
+
+            JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
+            return object.get("success").getAsBoolean();
+
+        } catch (IOException ex) {
+            System.out.println("IOException.");
+        }
+
+        return result;
     }
 
     private static void searchPrinters() {
