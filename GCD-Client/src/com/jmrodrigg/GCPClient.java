@@ -57,7 +57,7 @@ public class GCPClient implements CloudPrintConsts {
                             "\"print\": {" +
                                 "\"media_size\": {" +
                                     "\"width_microns\": 609600," +
-                                    "\"height_microns\": 177800," +
+                                    "\"height_microns\": 203200," +
                                     "\"is_continuous_feed\": true" +
                                 "}" +
                             "}" +
