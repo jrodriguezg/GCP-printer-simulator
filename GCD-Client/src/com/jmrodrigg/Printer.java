@@ -16,6 +16,9 @@ public class Printer {
         this.displayName = displayName;
     }
 
+    public String getPrinterId() {
+        return printerid;
+    }
 
     @Override
     public String toString() {
