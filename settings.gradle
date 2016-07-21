@@ -1,0 +1,8 @@
+include ':GCD-Utils'
+//project(':GCD-Utils').projectDir = new File(rootDir, 'GCD-Utils')
+
+include ':GCD-Printer'
+//project(':GCD-Printer').projectDir = new File(rootDir, 'GCD-Printer')
+
+include ':GCD-Client'
+//project(':GCD-Client').projectDir = new File(rootDir, 'GCD-Client')

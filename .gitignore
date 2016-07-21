@@ -6,3 +6,5 @@
 
 /GCD-Printer/res/keys/api_key.json
 /GCD-Client/res/keys/api_key.json
+/*/build/
+/gradle.properties
