@@ -5,6 +5,7 @@ import com.google.gson.internal.Pair;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class GCPClient implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> submit(String access_token, String printerid) throws IOException {
+    public static Pair<Integer,String> submit(String access_token, String printerid) throws IOException, URISyntaxException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -78,7 +79,7 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // 2.- Document:
-        File file = new File("GCD-Client/samples/test_24x8in.pdf");
+        File file = new File((Main.class.getClassLoader().getResource("samples/test_24x8in.pdf")).toURI());
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);

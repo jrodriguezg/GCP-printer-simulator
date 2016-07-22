@@ -91,7 +91,7 @@ public class Main {
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
             return object.get("success").getAsBoolean();
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("IOException.");
         }
 
