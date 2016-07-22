@@ -21,7 +21,8 @@ public class GCPrinter implements CloudPrintConsts {
     public static Pair<Integer,String> register(boolean is_roll) throws IOException, URISyntaxException {
 
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("name","Juanma GCD Printer");
+        if (is_roll) parameters.put("name","Juanma GCD Roll-Printer");
+        else parameters.put("name","Juanma GCD Sheet-Printer");
         parameters.put("proxy","asdasd-asdasd-asdasd");
         parameters.put("uuid","1234-1234-1234");
         parameters.put("manufacturer","HP");
@@ -68,8 +69,8 @@ public class GCPrinter implements CloudPrintConsts {
 
         // 2.- Capabilities:
         File file;
-        if (is_roll) file = new File("GCD-Printer/samples/capabilities_roll.json");
-        else file = new File("GCD-Printer/samples/capabilities.json");
+        if (is_roll) file = new File((Main.class.getClassLoader().getResource("samples/capabilities_roll.json")).toURI());
+        else file = new File((Main.class.getClassLoader().getResource("samples/capabilities.json")).toURI());
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);

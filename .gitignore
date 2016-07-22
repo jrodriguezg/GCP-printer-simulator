@@ -5,6 +5,7 @@
 *.iml
 
 /GCD-Printer/res/keys/api_key.json
+/GCD-Printer/printers.txt
 /GCD-Client/res/keys/api_key.json
 /*/build/
 /gradle.properties
