@@ -44,7 +44,7 @@ public class Main {
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
 
             JsonElement invite_url = object.get("complete_invite_url");
-            JsonElement polling_url = object.get("polling_url");
+//            JsonElement polling_url = object.get("polling_url");
             JsonElement printer_id = object.get("printers").getAsJsonArray().get(0).getAsJsonObject().get("id");
 
             System.out.println("Printer registration success. printerid={" + printer_id.getAsString() + "}");
@@ -159,6 +159,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        int action;
 
         do {
             System.out.println("");
@@ -169,10 +170,12 @@ public class Main {
             System.out.println("| 3.- List jobs from previous printer.                  |");
             System.out.println("| 4.- Update printer state.                             |");
             System.out.println("| 5.- Printer status (server).                          |");
+            System.out.println("|                                                       |");
+            System.out.println("| 0.- Exit program.                                     |");
             System.out.println("---------------------------------------------------------");
 
             System.out.print("Choose any action: ");
-            int action = Integer.parseInt(new Scanner(System.in).next());
+            action = Integer.parseInt(new Scanner(System.in).next());
             System.out.println("");
 
             switch (action) {
@@ -183,10 +186,12 @@ public class Main {
 
                     registerPrinter(type.equals("R"));
                     break;
+
                 case 2:
                     if (claimPrinter()) System.out.println("Printer claimed successfully.");
                     else System.out.println("Couldn't retrieve printer.");
                     break;
+
                 case 3:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
@@ -204,7 +209,7 @@ public class Main {
                                 PrintJob job = jobs.get(jobId-1);
 
                                 try {
-                                    Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
+                                    getJobTicket(oAuth.getAccessToken(),job.getJobId());
                                     downloadFile(oAuth.getAccessToken(),job);
                                     printJob(oAuth.getAccessToken(),job);
 
@@ -215,18 +220,20 @@ public class Main {
                         } else System.out.println("No jobs in printer queue.");
                     }
                     break;
+
                 case 4:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
                         try {
                             String printer_state = "IDLE";
-                            Pair<Integer,String> response = updatePrinterState(oAuth.getAccessToken(), printerid, printer_state);
+                            updatePrinterState(oAuth.getAccessToken(), printerid, printer_state);
                             System.out.println("Printer State updated to " + printer_state + ".");
                         } catch (IOException ex) {
                             System.out.println("Error updating printer state.");
                         }
                     }
                     break;
+
                 case 5:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
@@ -239,10 +246,15 @@ public class Main {
                         }
                     }
                     break;
+
+                case 0:
+                    System.out.println("Bye-Bye =)");
+                    break;
+
                 default:
                     System.out.println("Unknown action. Try again.");
             }
             System.out.println("");
-        }while (true);
+        } while (action != 0);
     }
 }

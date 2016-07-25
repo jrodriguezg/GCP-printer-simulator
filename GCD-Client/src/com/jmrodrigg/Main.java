@@ -21,16 +21,17 @@ import static com.jmrodrigg.GCPClient.submit;
  */
 public class Main {
 
-    static List<Printer> printers;
-
     private static OAuth oAuth = new OAuth(Main.class.getClassLoader().getResourceAsStream("keys/api_key.json"));
 
     public static void main(String[] args) {
+        List<Printer> printers;
+
         System.out.print("Type your email address: ");
         String username = new Scanner(System.in).next();
         System.out.print("");
 
         if(oAuth.authorize(username)) {
+            int action;
 
             do {
                 System.out.println("");
@@ -39,17 +40,19 @@ public class Main {
                 System.out.println("| 1.- List printers.                                    |");
                 System.out.println("| 2.- Show capabilities for a printer.                  |");
                 System.out.println("| 3.- Submit a job.                                     |");
+                System.out.println("|                                                       |");
+                System.out.println("| 0.- Exit program.                                     |");
                 System.out.println("---------------------------------------------------------");
 
                 System.out.print("Choose any action: ");
-                int action = Integer.parseInt(new Scanner(System.in).next());
+                action = Integer.parseInt(new Scanner(System.in).next());
                 System.out.println("");
 
                 switch (action) {
                     case 1:
                     case 2:
                     case 3:
-                        searchPrinters();
+                        printers = searchPrinters();
 
                         if (action == 2) {
                             System.out.print("Select a printer to request its capabilties: ");
@@ -66,25 +69,21 @@ public class Main {
                             System.out.print("Select a printer to submit the job to: ");
                             int printernum = Integer.parseInt(new Scanner(System.in).next());
                             System.out.println("");
-
                             if (submitJob(printers.get(printernum).getPrinterId())) System.out.println("Job sent successfully.");
                             else System.out.println("Error while submitting job.");
-
                         }
                         break;
+
                     default:
                         System.out.println("Unknown action. Try again.");
                 }
-
                 System.out.println("");
-            }while (true);
+            }while (action != 0);
 
         } else System.out.print("Error: Unauthorized.");
     }
 
     private static boolean submitJob(String printerid) {
-        boolean result = false;
-
         try {
             Pair<Integer, String> response = submit(oAuth.getAccessToken(), printerid);
 
@@ -95,11 +94,11 @@ public class Main {
             System.out.println("IOException.");
         }
 
-        return result;
+        return false;
     }
 
-    private static void searchPrinters() {
-        printers = new ArrayList<>();
+    private static List<Printer> searchPrinters() {
+        List<Printer> printers = new ArrayList<>();
 
         try {
             Pair<Integer,String> response = search(oAuth.getAccessToken());
@@ -121,6 +120,8 @@ public class Main {
         } catch (IOException ex) {
             System.out.println("IOException.");
         }
+
+        return printers;
     }
 
     private static PrinterCapabilities requestCapabilities(String printerid) {
