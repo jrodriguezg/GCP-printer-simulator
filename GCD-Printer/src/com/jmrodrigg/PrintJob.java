@@ -1,6 +1,7 @@
 package com.jmrodrigg;
 
 import com.google.gson.JsonElement;
+import com.oracle.webservices.internal.api.message.ContentType;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,6 +11,9 @@ import java.util.Date;
  * Date: 7/10/16
  */
 public class PrintJob {
+
+    public static final String CONTENT_TYPE_PDF = "application/pdf";
+    public static final String CONTENT_TYPE_JPG = "image/jpeg";
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd - HH:mm");
 
@@ -51,6 +55,10 @@ public class PrintJob {
 
     public int getPages() {
         return pages;
+    }
+
+    public String getContentType() {
+        return contentType;
     }
 
     public boolean isPDF() {

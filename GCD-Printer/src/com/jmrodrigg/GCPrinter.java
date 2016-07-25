@@ -131,8 +131,22 @@ public class GCPrinter implements CloudPrintConsts {
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(job.getFileUrl()), new EmptyContent()).setHeaders(headers).execute();
 
         if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+
+            String extension;
+
+            switch (job.getContentType()) {
+                case PrintJob.CONTENT_TYPE_JPG:
+                    extension = ".jpg";
+                    break;
+                case PrintJob.CONTENT_TYPE_PDF:
+                    extension = ".pdf";
+                    break;
+                default:
+                    throw new IOException();
+            }
+
             InputStream is = response.getContent();
-            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + ".pdf"));
+            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + extension));
             IOUtils.copy(is,fos);
             fos.close();
         } else System.out.println("Error downloading file.");
@@ -186,7 +200,7 @@ public class GCPrinter implements CloudPrintConsts {
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"DONE\"},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
-                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+                requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
 
             } catch (Exception ex) {
                 System.out.println("Print job aborted.");
@@ -197,7 +211,7 @@ public class GCPrinter implements CloudPrintConsts {
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"CANCELLED\"}},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
-                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+                requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
             }
         }
     }
