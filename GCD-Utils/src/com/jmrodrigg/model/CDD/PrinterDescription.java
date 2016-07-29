@@ -9,7 +9,6 @@ import java.util.List;
 public class PrinterDescription {
     public final List<SupportedContentType> supported_content_type;
     public final PrintingSpeed printing_speed;
-    public final MediaSize media_size;
 
     public final List<Marker> marker;
     public final List<Cover> cover;
@@ -17,6 +16,9 @@ public class PrinterDescription {
     public final List<VendorCapability> vendor_capability;
     public final Color color;
     public final Copies copies;
+    public final Margins margins;
+    public final MediaSize media_size;
+
 
     private PrinterDescription(PrinterDescriptionBuilder builder) {
         this.supported_content_type = builder.supported_content_type;
@@ -28,6 +30,7 @@ public class PrinterDescription {
         this.vendor_capability = builder.vendor_capability_list;
         this.color = builder.color;
         this.copies = builder.copies;
+        this.margins = builder.margins;
     }
 
     public static class PrinterDescriptionBuilder {
@@ -40,6 +43,7 @@ public class PrinterDescription {
         private List<VendorCapability> vendor_capability_list;
         private Color color;
         private Copies copies;
+        private Margins margins;
 
         public PrinterDescriptionBuilder supportedContentTypes(List<SupportedContentType> list) {
             this.supported_content_type = list;
@@ -83,6 +87,11 @@ public class PrinterDescription {
 
         public PrinterDescriptionBuilder copies(Copies copies) {
             this.copies = copies;
+            return this;
+        }
+
+        public PrinterDescriptionBuilder margins(Margins margins) {
+            this.margins = margins;
             return this;
         }
 
