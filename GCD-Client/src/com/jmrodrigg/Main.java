@@ -1,16 +1,21 @@
 package com.jmrodrigg;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.gson.*;
 import com.google.gson.internal.Pair;
+import com.jmrodrigg.model.CDD.Marker;
+import com.jmrodrigg.model.CDD.MediaSize;
+import com.jmrodrigg.model.CDD.PrinterDescription;
+import com.jmrodrigg.proto.CDD;
+import com.sun.media.jfxmedia.Media;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static com.jmrodrigg.CloudPrintConsts.LIST;
 import static com.jmrodrigg.GCPClient.printer;
 import static com.jmrodrigg.GCPClient.search;
 import static com.jmrodrigg.GCPClient.submit;
@@ -59,11 +64,9 @@ public class Main {
                             int printernum = Integer.parseInt(new Scanner(System.in).next());
                             System.out.println("");
 
-                            PrinterCapabilities caps = requestCapabilities(printers.get(printernum).getPrinterId());
-                            if (caps.getMediaSizeList().size() > 0) {
-                                System.out.println("Media Sizes:");
-                                for (PrinterCapabilities.MediaSize ms : caps.getMediaSizeList()) System.out.println(ms.toString());
-                            } else System.out.println("no Media Size info.");
+                            PrinterDescription printer_description = requestCapabilities(printers.get(printernum).getPrinterId());
+                            System.out.println(printer_description.media_size.toString());
+                            System.out.println(printer_description.marker_list.toString());
 
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
@@ -124,35 +127,21 @@ public class Main {
         return printers;
     }
 
-    private static PrinterCapabilities requestCapabilities(String printerid) {
+    private static PrinterDescription requestCapabilities(String printerid) {
         try {
             Pair<Integer, String> response = printer(oAuth.getAccessToken(), printerid);
 
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
             JsonObject retCapabilities = object.getAsJsonArray("printers").get(0).getAsJsonObject().getAsJsonObject("capabilities");
 
-            PrinterCapabilities caps = new PrinterCapabilities();
-
+            Gson gson = new Gson();
             // Media Size:
-            JsonArray sizes = retCapabilities.getAsJsonObject("printer").getAsJsonObject("media_size").getAsJsonArray("option");
-            for (JsonElement je : sizes) {
-                JsonObject media_size = je.getAsJsonObject();
+            MediaSize media_size = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("media_size"), MediaSize.class);
 
-                PrinterCapabilities.MediaSize m = caps.new MediaSize();
+            // Marker:
+            List<Marker> marker = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("marker"), List.class);
 
-                m.custom_display_name = (media_size.get("custom_display_name") != null) ? media_size.get("custom_display_name").getAsString() : null;
-                m.custom_display_name_localized = (media_size.get("custom_display_name_localized") != null) ? media_size.get("custom_display_name_localized").getAsString() : null;
-                m.vendor_id = (media_size.get("vendor_id") != null) ? media_size.get("vendor_id").getAsString() : null;
-
-                m.height_microns = (media_size.get("height_microns") != null) ? media_size.get("height_microns").getAsInt() : 0;
-                m.width_microns = (media_size.get("width_microns") != null) ? media_size.get("width_microns").getAsInt() : 0;
-                m.is_continuous_feed = (media_size.get("is_continuous_feed") != null) && media_size.get("is_continuous_feed").getAsBoolean();
-                m.is_default = (media_size.get("is_default") != null) && media_size.get("is_default").getAsBoolean();
-
-                caps.addMediaSize(m);
-            }
-
-            return caps;
+            return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).build();
 
         } catch (IOException ex) {
             System.out.println("IOException.");
