@@ -142,7 +142,12 @@ public class Main {
             Copies copies = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("copies"), Copies.class);
 
 
-            return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).colors(color).build();
+            return new PrinterDescription.PrinterDescriptionBuilder()
+                            .mediaSizes(media_size)
+                            .markers(marker)
+                            .colors(color)
+                            .copies(copies)
+                            .build();
         } catch (IOException ex) {
             System.out.println("IOException.");
             return null;
