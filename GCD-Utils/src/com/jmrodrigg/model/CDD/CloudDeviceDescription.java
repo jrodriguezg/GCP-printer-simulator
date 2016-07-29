@@ -7,4 +7,6 @@ package com.jmrodrigg.model.CDD;
 public class CloudDeviceDescription {
     String version;
     PrinterDescription printer;
+
+    // TODO
 }

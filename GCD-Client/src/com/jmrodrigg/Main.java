@@ -3,6 +3,7 @@ package com.jmrodrigg;
 import com.google.gson.*;
 import com.google.gson.internal.Pair;
 import com.google.gson.reflect.TypeToken;
+import com.jmrodrigg.model.CDD.Color;
 import com.jmrodrigg.model.CDD.Marker;
 import com.jmrodrigg.model.CDD.MediaSize;
 import com.jmrodrigg.model.CDD.PrinterDescription;
@@ -63,7 +64,8 @@ public class Main {
                             PrinterDescription printer_description = requestCapabilities(printers.get(printernum).getPrinterId());
                             if (printer_description != null) {
                                 System.out.println(printer_description.media_size.toString());
-                                System.out.println(printer_description.marker_list.toString());
+                                System.out.println(printer_description.marker.toString());
+                                System.out.println(printer_description.color.toString());
                             }
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
@@ -134,11 +136,13 @@ public class Main {
             Gson gson = new Gson();
             // Media Size:
             MediaSize media_size = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("media_size"), MediaSize.class);
-
             // Marker:
             List<Marker> marker = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("marker"), new TypeToken<List<Marker>>(){}.getType());
+            // Color:
+            Color color = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("color"), Color.class);
 
-            return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).build();
+
+            return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).colors(color).build();
 
         } catch (IOException ex) {
             System.out.println("IOException.");
