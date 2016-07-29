@@ -74,6 +74,10 @@ public class Main {
                         }
                         break;
 
+                    case 0:
+                        System.out.println("Bye-Bye =)");
+                        break;
+
                     default:
                         System.out.println("Unknown action. Try again.");
                 }
