@@ -3,6 +3,8 @@ package com.jmrodrigg;
 import com.google.api.client.http.*;
 import com.google.gson.internal.Pair;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -47,6 +49,17 @@ public class GCPClient implements CloudPrintConsts {
         headers.put("X-CloudPrint-Proxy","");
         headers.setAuthorization("OAuth " + access_token);
 
+        // Open the bitmap and adjust paper size to match roll width:
+        int resolution = 300;
+        int roll_width = 609600;
+
+        BufferedImage picture = ImageIO.read(new File("GCD-Client/samples/Barcelona.jpg"));
+        int height_microns = (int) ((picture.getHeight() * 25.4f * 1000) / resolution);
+        int width_microns = (int) ((picture.getWidth() * 25.4f * 1000) / resolution);
+
+        float scale = (float) roll_width / width_microns;
+
+        int scaled_height = (int) (scale * height_microns);
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("printerid",printerid);
@@ -56,10 +69,14 @@ public class GCPClient implements CloudPrintConsts {
                             "\"version\": " + "\"1.0\"," +
                             "\"print\": {" +
                                 "\"media_size\": {" +
-                                    "\"width_microns\": 609600," +
-                                    "\"height_microns\": 203200," +
+                                    "\"width_microns\": " + roll_width + "," +
+                                    "\"height_microns\": " + scaled_height + "," +
                                     "\"is_continuous_feed\": true" +
-                                "}" +
+                                "}," +
+                                "\"dpi\": {" +
+                                    "\"horizontal_dpi\": " + resolution +"," +
+                                    "\"vertical_dpi\": " + resolution +
+                                "}," +
                             "}" +
                         "}";
 
@@ -78,7 +95,7 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // 2.- Document:
-        File file = new File("GCD-Client/samples/test_24x8in.pdf");
+        File file = new File("GCD-Client/samples/Barcelona.jpg");
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);
