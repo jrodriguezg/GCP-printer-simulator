@@ -1,7 +1,6 @@
 package com.jmrodrigg;
 
 import com.google.gson.JsonElement;
-import com.oracle.webservices.internal.api.message.ContentType;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -59,10 +58,6 @@ public class PrintJob {
 
     public String getContentType() {
         return contentType;
-    }
-
-    public boolean isPDF() {
-        return contentType.equals("application/pdf");
     }
 
     public String toString() {

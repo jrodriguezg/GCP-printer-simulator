@@ -131,7 +131,7 @@ public class Main {
         printerid = null;
 
         try {
-            List<String> printers = Files.readAllLines(Paths.get("printers.txt"));
+            List<String> printers = Files.readAllLines(Paths.get("GCD-Printer/printers.txt"));
             if (!printers.isEmpty()) {
                 int i = 1;
                 for (String line : printers) {
