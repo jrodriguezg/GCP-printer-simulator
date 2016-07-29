@@ -1,7 +1,8 @@
 package com.jmrodrigg.model.CDD;
 
 /**
- * Created by jrodriguezg on 7/29/16.
+ * Author: jrodriguezg
+ * Date: 7/29/16
  */
 public class SupportedContentType {
     public final String content_type            = null; /* Required */

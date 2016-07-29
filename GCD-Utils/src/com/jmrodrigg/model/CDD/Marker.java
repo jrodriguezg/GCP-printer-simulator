@@ -6,7 +6,8 @@ import com.jmrodrigg.model.Utils.LocalizedString;
 import java.util.List;
 
 /**
- * Created by jrodriguezg on 7/29/16.
+ * Author: jrodriguezg
+ * Date: 7/29/16
  */
 public class Marker {
 
@@ -81,7 +82,7 @@ public class Marker {
         return "Marker{" +
                 "vendor_id='" + vendor_id + '\'' +
                 ", type=" + type +
-                ", color=" + color +
+                ", color=" + color.toString() +
                 ", custom_display_name='" + custom_display_name + '\'' +
                 ", custom_display_name_localized=" + custom_display_name_localized +
                 '}';

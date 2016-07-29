@@ -1,21 +1,17 @@
 package com.jmrodrigg;
 
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gson.*;
 import com.google.gson.internal.Pair;
+import com.google.gson.reflect.TypeToken;
 import com.jmrodrigg.model.CDD.Marker;
 import com.jmrodrigg.model.CDD.MediaSize;
 import com.jmrodrigg.model.CDD.PrinterDescription;
-import com.jmrodrigg.proto.CDD;
-import com.sun.media.jfxmedia.Media;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.jmrodrigg.CloudPrintConsts.LIST;
 import static com.jmrodrigg.GCPClient.printer;
 import static com.jmrodrigg.GCPClient.search;
 import static com.jmrodrigg.GCPClient.submit;
@@ -65,9 +61,10 @@ public class Main {
                             System.out.println("");
 
                             PrinterDescription printer_description = requestCapabilities(printers.get(printernum).getPrinterId());
-                            System.out.println(printer_description.media_size.toString());
-                            System.out.println(printer_description.marker_list.toString());
-
+                            if (printer_description != null) {
+                                System.out.println(printer_description.media_size.toString());
+                                System.out.println(printer_description.marker_list.toString());
+                            }
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
                             int printernum = Integer.parseInt(new Scanner(System.in).next());
@@ -139,7 +136,7 @@ public class Main {
             MediaSize media_size = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("media_size"), MediaSize.class);
 
             // Marker:
-            List<Marker> marker = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("marker"), List.class);
+            List<Marker> marker = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("marker"), new TypeToken<List<Marker>>(){}.getType());
 
             return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).build();
 

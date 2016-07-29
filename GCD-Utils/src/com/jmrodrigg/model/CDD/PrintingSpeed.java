@@ -5,7 +5,8 @@ import com.jmrodrigg.model.Utils.PrintingColor;
 import java.util.List;
 
 /**
- * Created by jrodriguezg on 7/29/16.
+ * Author: jrodriguezg
+ * Date: 7/29/16
  */
 public class PrintingSpeed {
 

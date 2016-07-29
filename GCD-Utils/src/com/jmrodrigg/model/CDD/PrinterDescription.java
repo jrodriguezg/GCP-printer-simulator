@@ -3,7 +3,8 @@ package com.jmrodrigg.model.CDD;
 import java.util.List;
 
 /**
- * Created by jrodriguezg on 7/29/16.
+ * Author: jrodriguezg
+ * Date: 7/29/16
  */
 public class PrinterDescription {
     public final List<SupportedContentType> supported_content_type_list;
