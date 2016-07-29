@@ -3,10 +3,7 @@ package com.jmrodrigg;
 import com.google.gson.*;
 import com.google.gson.internal.Pair;
 import com.google.gson.reflect.TypeToken;
-import com.jmrodrigg.model.CDD.Color;
-import com.jmrodrigg.model.CDD.Marker;
-import com.jmrodrigg.model.CDD.MediaSize;
-import com.jmrodrigg.model.CDD.PrinterDescription;
+import com.jmrodrigg.model.CDD.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,6 +63,7 @@ public class Main {
                                 System.out.println(printer_description.media_size.toString());
                                 System.out.println(printer_description.marker.toString());
                                 System.out.println(printer_description.color.toString());
+                                System.out.println(printer_description.copies.toString());
                             }
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
@@ -140,10 +138,11 @@ public class Main {
             List<Marker> marker = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("marker"), new TypeToken<List<Marker>>(){}.getType());
             // Color:
             Color color = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("color"), Color.class);
+            // Copies:
+            Copies copies = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("copies"), Copies.class);
 
 
             return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).colors(color).build();
-
         } catch (IOException ex) {
             System.out.println("IOException.");
             return null;

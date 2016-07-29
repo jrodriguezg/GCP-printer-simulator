@@ -16,6 +16,7 @@ public class PrinterDescription {
     public final List<MediaPath> media_path;
     public final List<VendorCapability> vendor_capability;
     public final Color color;
+    public final Copies copies;
 
     private PrinterDescription(PrinterDescriptionBuilder builder) {
         this.supported_content_type = builder.supported_content_type;
@@ -25,7 +26,8 @@ public class PrinterDescription {
         this.cover = builder.cover_list;
         this.media_path = builder.media_path_list;
         this.vendor_capability = builder.vendor_capability_list;
-        this.color = builder.color_list;
+        this.color = builder.color;
+        this.copies = builder.copies;
     }
 
     public static class PrinterDescriptionBuilder {
@@ -36,7 +38,8 @@ public class PrinterDescription {
         private List<Cover> cover_list;
         private List<MediaPath> media_path_list;
         private List<VendorCapability> vendor_capability_list;
-        private Color color_list;
+        private Color color;
+        private Copies copies;
 
         public PrinterDescriptionBuilder supportedContentTypes(List<SupportedContentType> list) {
             this.supported_content_type = list;
@@ -73,8 +76,13 @@ public class PrinterDescription {
             return this;
         }
 
-        public PrinterDescriptionBuilder colors(Color list) {
-            this.color_list = list;
+        public PrinterDescriptionBuilder colors(Color color) {
+            this.color = color;
+            return this;
+        }
+
+        public PrinterDescriptionBuilder copies(Copies copies) {
+            this.copies = copies;
             return this;
         }
 
