@@ -18,7 +18,7 @@ import static com.jmrodrigg.Common.requestFactory;
  */
 public class GCPrinter implements CloudPrintConsts {
 
-    public static Pair<Integer,String> register(boolean is_roll) throws IOException, URISyntaxException {
+    public static Pair<Integer,String> register(String type) throws IOException, URISyntaxException {
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("name","Juanma GCD Printer");
@@ -68,8 +68,19 @@ public class GCPrinter implements CloudPrintConsts {
 
         // 2.- Capabilities:
         File file;
-        if (is_roll) file = new File("GCD-Printer/samples/capabilities_roll.json");
-        else file = new File("GCD-Printer/samples/capabilities.json");
+
+        switch (type) {
+            case "A":
+                file = new File("GCD-Printer/samples/capabilities_roll_A0.json");
+                break;
+            case "R":
+                file = new File("GCD-Printer/samples/capabilities_roll.json");
+                break;
+            case "S":
+            default:
+                file = new File("GCD-Printer/samples/capabilities.json");
+                break;
+        }
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);
