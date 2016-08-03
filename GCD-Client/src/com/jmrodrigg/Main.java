@@ -64,6 +64,8 @@ public class Main {
                                 System.out.println(printer_description.marker.toString());
                                 System.out.println(printer_description.color.toString());
                                 System.out.println(printer_description.copies.toString());
+                                System.out.println(printer_description.cover.toString());
+                                System.out.println(printer_description.margins.toString());
                             }
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
@@ -72,6 +74,10 @@ public class Main {
                             if (submitJob(printers.get(printernum).getPrinterId())) System.out.println("Job sent successfully.");
                             else System.out.println("Error while submitting job.");
                         }
+                        break;
+
+                    case 0:
+                        System.out.println("Bye-Bye =)");
                         break;
 
                     default:
@@ -140,9 +146,19 @@ public class Main {
             Color color = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("color"), Color.class);
             // Copies:
             Copies copies = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("copies"), Copies.class);
+            // Cover:
+            List<Cover> covers = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("cover"), new TypeToken<List<Cover>>(){}.getType());
+            // Cover:
+            Margins margins = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("margins"), Margins.class);
 
-
-            return new PrinterDescription.PrinterDescriptionBuilder().mediaSizes(media_size).markers(marker).colors(color).build();
+            return new PrinterDescription.PrinterDescriptionBuilder()
+                            .mediaSizes(media_size)
+                            .markers(marker)
+                            .colors(color)
+                            .copies(copies)
+                            .covers(covers)
+                            .margins(margins)
+                            .build();
         } catch (IOException ex) {
             System.out.println("IOException.");
             return null;
