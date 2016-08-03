@@ -52,6 +52,10 @@ public class PrintJob {
         return fileUrl;
     }
 
+    public String getRasterUrl() {
+        return rasterUrl;
+    }
+
     public int getPages() {
         return pages;
     }

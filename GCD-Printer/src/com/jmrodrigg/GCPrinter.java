@@ -133,13 +133,18 @@ public class GCPrinter implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static void downloadFile(String access_token, PrintJob job) throws IOException {
+    public static void downloadFile(String access_token, PrintJob job, boolean force_raster) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
         headers.setAuthorization("OAuth " + access_token);
 
-        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(job.getFileUrl()), new EmptyContent()).setHeaders(headers).execute();
+        GenericUrl url;
+
+        if (force_raster) url = new GenericUrl(job.getRasterUrl());
+        else url = new GenericUrl(job.getFileUrl());
+
+        HttpResponse response = requestFactory.buildPostRequest(url, new EmptyContent()).setHeaders(headers).execute();
 
         if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
 
@@ -155,6 +160,9 @@ public class GCPrinter implements CloudPrintConsts {
                 default:
                     throw new IOException();
             }
+
+            // Overwrite extension if flag "force_raster" is set to true:
+            extension = force_raster ? ".pwg" : extension;
 
             InputStream is = response.getContent();
             FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + extension));

@@ -208,14 +208,21 @@ public class Main {
                             if (jobId > 0) {
                                 PrintJob job = jobs.get(jobId-1);
 
-                                try {
-                                    getJobTicket(oAuth.getAccessToken(),job.getJobId());
-                                    downloadFile(oAuth.getAccessToken(),job);
-                                    printJob(oAuth.getAccessToken(),job);
+                                System.out.print("(P)DF or PWG-(R)aster: ");
+                                String format = new Scanner(System.in).next();
 
-                                } catch (IOException ex) {
-                                    System.out.println("Error printing job.");
-                                }
+                                System.out.println("");
+
+                                if (format.equals("P") || format.equals("R")) {
+                                    try {
+                                        getJobTicket(oAuth.getAccessToken(), job.getJobId());
+                                        downloadFile(oAuth.getAccessToken(), job, format.equals("R"));
+                                        printJob(oAuth.getAccessToken(), job);
+
+                                    } catch (IOException ex) {
+                                        System.out.println("Error printing job.");
+                                    }
+                                } else System.out.println("Wrong format selection.");
                             }
                         } else System.out.println("No jobs in printer queue.");
                     }
