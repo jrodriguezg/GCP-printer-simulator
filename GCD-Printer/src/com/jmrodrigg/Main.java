@@ -27,7 +27,7 @@ public class Main {
 
     private static Credentials credentials = new Credentials(Main.class.getClassLoader().getResourceAsStream("keys/api_key.json"));
 
-    private static String printerid, authorization_code, email;
+    private static String printerid;
 
     private static boolean registerPrinter(String type) {
         Pair<Integer,String> response;
@@ -67,8 +67,8 @@ public class Main {
                 object = new JsonParser().parse(response.second).getAsJsonObject();
                 JsonArray printerIdArray = object.getAsJsonObject("request").getAsJsonObject("params").getAsJsonArray("printerid");
                 printerid = printerIdArray.get(0).getAsString();
-                authorization_code = object.get("authorization_code").getAsString();
-                email = object.get("user_email").getAsString();
+                String authorization_code = object.get("authorization_code").getAsString();
+                String email = object.get("user_email").getAsString();
 
                 System.out.println("Printer registered to user " + email);
 
@@ -79,7 +79,7 @@ public class Main {
 
                     try {
                         String printer_data = printerid + ";" + authorization_code + ";" + oAuth.getRefreshToken() + ";" + email + "\n";
-                        Files.write(Paths.get("printers.txt"), printer_data.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                        Files.write(Paths.get("GCD-Printer/printers.txt"), printer_data.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                         return true;
                     } catch (IOException ex) {
                         System.out.println("Error. Printer data not stored.");
