@@ -60,6 +60,7 @@ public class Main {
 
                             PrinterDescription printer_description = requestCapabilities(printers.get(printernum).getPrinterId());
                             if (printer_description != null) {
+                                System.out.println(printer_description.supported_content_type.toString());
                                 System.out.println(printer_description.media_size.toString());
                                 System.out.println(printer_description.marker.toString());
                                 System.out.println(printer_description.color.toString());
@@ -143,6 +144,8 @@ public class Main {
             JsonObject retCapabilities = object.getAsJsonArray("printers").get(0).getAsJsonObject().getAsJsonObject("capabilities");
 
             Gson gson = new Gson();
+            // Supported content types:
+            List<SupportedContentType> supported_content_types = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("supported_content_type"), new TypeToken<List<SupportedContentType>>(){}.getType());
             // Media Size:
             MediaSize media_size = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("media_size"), MediaSize.class);
             // Marker:
@@ -157,6 +160,7 @@ public class Main {
             Margins margins = gson.fromJson(retCapabilities.getAsJsonObject("printer").get("margins"), Margins.class);
 
             return new PrinterDescription.PrinterDescriptionBuilder()
+                            .supportedContentTypes(supported_content_types)
                             .mediaSizes(media_size)
                             .markers(marker)
                             .colors(color)
