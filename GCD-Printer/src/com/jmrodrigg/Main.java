@@ -29,11 +29,11 @@ public class Main {
 
     private static String printerid, authorization_code, email;
 
-    private static boolean registerPrinter(boolean is_roll) {
+    private static boolean registerPrinter(String type) {
         Pair<Integer,String> response;
         try {
             // 1. Register printer:
-            response = register(is_roll);
+            response = register(type);
         } catch (Exception ex) {
             System.out.println("IO Exception");
             printerid = null;
@@ -44,7 +44,7 @@ public class Main {
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
 
             JsonElement invite_url = object.get("complete_invite_url");
-            JsonElement polling_url = object.get("polling_url");
+//            JsonElement polling_url = object.get("polling_url");
             JsonElement printer_id = object.get("printers").getAsJsonArray().get(0).getAsJsonObject().get("id");
 
             System.out.println("Printer registration success. printerid={" + printer_id.getAsString() + "}");
@@ -131,7 +131,7 @@ public class Main {
         printerid = null;
 
         try {
-            List<String> printers = Files.readAllLines(Paths.get("printers.txt"));
+            List<String> printers = Files.readAllLines(Paths.get("GCD-Printer/printers.txt"));
             if (!printers.isEmpty()) {
                 int i = 1;
                 for (String line : printers) {
@@ -159,6 +159,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        int action;
 
         do {
             System.out.println("");
@@ -169,24 +170,28 @@ public class Main {
             System.out.println("| 3.- List jobs from previous printer.                  |");
             System.out.println("| 4.- Update printer state.                             |");
             System.out.println("| 5.- Printer status (server).                          |");
+            System.out.println("|                                                       |");
+            System.out.println("| 0.- Exit program.                                     |");
             System.out.println("---------------------------------------------------------");
 
             System.out.print("Choose any action: ");
-            int action = Integer.parseInt(new Scanner(System.in).next());
+            action = Integer.parseInt(new Scanner(System.in).next());
             System.out.println("");
 
             switch (action) {
                 case 1:
-                    System.out.print("(S)heet printer or (R)oll printer? ");
+                    System.out.print("(S)heet printer, (R)oll printer or Roll (A)0 printer? ");
                     String type = new Scanner(System.in).next();
                     System.out.println("");
 
-                    registerPrinter(type.equals("R"));
+                    registerPrinter(type);
                     break;
+
                 case 2:
                     if (claimPrinter()) System.out.println("Printer claimed successfully.");
                     else System.out.println("Couldn't retrieve printer.");
                     break;
+
                 case 3:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
@@ -203,30 +208,39 @@ public class Main {
                             if (jobId > 0) {
                                 PrintJob job = jobs.get(jobId-1);
 
-                                try {
-                                    Pair<Integer,String> response = getJobTicket(oAuth.getAccessToken(),job.getJobId());
-                                    downloadFile(oAuth.getAccessToken(),job);
-                                    printJob(oAuth.getAccessToken(),job);
+                                System.out.print("(P)DF or PWG-(R)aster: ");
+                                String format = new Scanner(System.in).next();
 
-                                } catch (IOException ex) {
-                                    System.out.println("Error printing job.");
-                                }
+                                System.out.println("");
+
+                                if (format.equals("P") || format.equals("R")) {
+                                    try {
+                                        getJobTicket(oAuth.getAccessToken(), job.getJobId());
+                                        downloadFile(oAuth.getAccessToken(), job, format.equals("R"));
+                                        printJob(oAuth.getAccessToken(), job);
+
+                                    } catch (IOException ex) {
+                                        System.out.println("Error printing job.");
+                                    }
+                                } else System.out.println("Wrong format selection.");
                             }
                         } else System.out.println("No jobs in printer queue.");
                     }
                     break;
+
                 case 4:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
                         try {
                             String printer_state = "IDLE";
-                            Pair<Integer,String> response = updatePrinterState(oAuth.getAccessToken(), printerid, printer_state);
+                            updatePrinterState(oAuth.getAccessToken(), printerid, printer_state);
                             System.out.println("Printer State updated to " + printer_state + ".");
                         } catch (IOException ex) {
                             System.out.println("Error updating printer state.");
                         }
                     }
                     break;
+
                 case 5:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
@@ -239,10 +253,15 @@ public class Main {
                         }
                     }
                     break;
+
+                case 0:
+                    System.out.println("Bye-Bye =)");
+                    break;
+
                 default:
                     System.out.println("Unknown action. Try again.");
             }
             System.out.println("");
-        }while (true);
+        } while (action != 0);
     }
 }

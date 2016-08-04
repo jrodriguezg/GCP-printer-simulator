@@ -18,11 +18,10 @@ import static com.jmrodrigg.Common.requestFactory;
  */
 public class GCPrinter implements CloudPrintConsts {
 
-    public static Pair<Integer,String> register(boolean is_roll) throws IOException, URISyntaxException {
+    public static Pair<Integer,String> register(String type) throws IOException, URISyntaxException {
 
         Map<String, String> parameters = new HashMap<>();
-        if (is_roll) parameters.put("name","Juanma GCD Roll-Printer");
-        else parameters.put("name","Juanma GCD Sheet-Printer");
+        parameters.put("name","Juanma GCD Printer");
         parameters.put("proxy","asdasd-asdasd-asdasd");
         parameters.put("uuid","1234-1234-1234");
         parameters.put("manufacturer","HP");
@@ -69,8 +68,19 @@ public class GCPrinter implements CloudPrintConsts {
 
         // 2.- Capabilities:
         File file;
-        if (is_roll) file = new File((Main.class.getClassLoader().getResource("samples/capabilities_roll.json")).toURI());
-        else file = new File((Main.class.getClassLoader().getResource("samples/capabilities.json")).toURI());
+
+        switch (type) {
+            case "A":
+                file = new File((Main.class.getClassLoader().getResource("samples/capabilities_roll_A0.json")).toURI());
+                break;
+            case "R":
+                file = new File((Main.class.getClassLoader().getResource("samples/capabilities_roll.json")).toURI());
+                break;
+            case "S":
+            default:
+                file = file = new File((Main.class.getClassLoader().getResource("samples/capabilities.json")).toURI());
+                break;
+        }
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);
@@ -123,17 +133,39 @@ public class GCPrinter implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static void downloadFile(String access_token, PrintJob job) throws IOException {
+    public static void downloadFile(String access_token, PrintJob job, boolean force_raster) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
         headers.setAuthorization("OAuth " + access_token);
 
-        HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(job.getFileUrl()), new EmptyContent()).setHeaders(headers).execute();
+        GenericUrl url;
+
+        if (force_raster) url = new GenericUrl(job.getRasterUrl());
+        else url = new GenericUrl(job.getFileUrl());
+
+        HttpResponse response = requestFactory.buildPostRequest(url, new EmptyContent()).setHeaders(headers).execute();
 
         if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
+
+            String extension;
+
+            switch (job.getContentType()) {
+                case PrintJob.CONTENT_TYPE_JPG:
+                    extension = ".jpg";
+                    break;
+                case PrintJob.CONTENT_TYPE_PDF:
+                    extension = ".pdf";
+                    break;
+                default:
+                    throw new IOException();
+            }
+
+            // Overwrite extension if flag "force_raster" is set to true:
+            extension = force_raster ? ".pwg" : extension;
+
             InputStream is = response.getContent();
-            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + ".pdf"));
+            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + extension));
             IOUtils.copy(is,fos);
             fos.close();
         } else System.out.println("Error downloading file.");
@@ -187,7 +219,7 @@ public class GCPrinter implements CloudPrintConsts {
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"DONE\"},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
-                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+                requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
 
             } catch (Exception ex) {
                 System.out.println("Print job aborted.");
@@ -198,7 +230,7 @@ public class GCPrinter implements CloudPrintConsts {
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"CANCELLED\"}},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
-                response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
+                requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + CONTROL), content).setHeaders(headers).execute();
             }
         }
     }

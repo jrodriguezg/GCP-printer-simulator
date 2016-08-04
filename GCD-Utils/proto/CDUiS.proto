@@ -1,0 +1,85 @@
+
+option java_package = "com.jmrodrigg.proto";
+
+import "CDD.proto";
+
+// Represents a cloud device's state in a form convenient for display in a UI.
+message CloudDeviceUiState {
+
+    enum Summary {
+        IDLE = 0;
+        PROCESSING = 1;
+        STOPPED = 2;
+        OFFLINE = 3;
+    }
+
+    enum Severity {
+        NONE = 0;
+        LOW = 1;
+        MEDIUM = 2;
+        HIGH = 3;
+    }
+
+    // Device state summary (required).
+    optional Summary summary = 1 [default = IDLE];
+
+    // Overall severity (error level) of the device state (required).
+    // Must only be HIGH in the case that the device is STOPPED.
+    optional Severity severity = 2 [default = NONE];
+
+    // In the descriptions of the following three fields, "CDS is nontrivial"
+    // means that CDS is present and there is at least one state item in its
+    // PrinterStateSection or ScannerStateSection which is "interesting" enough
+    // to produce a UI state item for.
+
+    // Number of issues detected.
+    // Present if and only if CDS is nontrivial.
+    optional int32 num_issues = 3 [default = 0];
+
+    // Heuristically determined most relevant message from a state item.
+    // Present if and only if CDS is nontrivial, the device is not OFFLINE, and
+    // the maximum severity of a state item is at least MEDIUM if the device is
+    // IDLE or PROCESSING, or at least LOW if the device is STOPPED.
+    optional string caption = 4;
+
+    // State items specific to the printing capability of the device.
+    // Present if and only if CDS is nontrivial and this CloudDeviceUiState object
+    // is being returned in a single printer lookup or in a recent printer search.
+    optional PrinterUiStateSection printer = 5;
+}
+
+// Contains one UI state item for each CDS state item using the information
+// obtained from cross-referencing the CDD.
+message PrinterUiStateSection {
+
+    // A UI state item with a severity level and either:
+    // (1) a localized message and UI-displayable data from the properties and
+    //     state of a particular unit of the device, or
+    // (2) a possibly non-localized vendor state message.
+    message Item {
+
+        // The severity of this individual state item (required).
+        optional CloudDeviceUiState.Severity severity = 1;
+
+        // A message produced from a state item, e.g. Black ink level is 60%. This
+        // message may not be localized if it is from a VendorState.Item (required).
+        optional string message = 2;
+
+        // A non-localized vendor-specific message that provides additional
+        // information about the state of the device unit described by this item.
+        optional string vendor_message = 3;
+
+        // The fullness level of an input tray, output bin or marker.
+        optional int32 level_percent = 4;
+
+        // The color of a marker.
+        optional Marker.Color.Type color = 5;
+    }
+
+    repeated Item vendor_item = 1;
+    repeated Item input_tray_item = 2;
+    repeated Item output_bin_item = 3;
+    repeated Item marker_item = 4;
+    repeated Item cover_item = 5;
+    repeated Item media_path_item = 6;
+}

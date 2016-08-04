@@ -1,0 +1,247 @@
+
+option java_package = "com.jmrodrigg.proto";
+
+import "Utils.proto";
+
+// Represents the entire cloud-connected device state.
+message CloudDeviceState {
+
+    // Supported device states.
+    enum StateType {
+
+        // Device is ready to accept jobs. Self-testing, low power and all other
+        // states in which the device can start processing newly submitted jobs
+        // without user intervention should be mapped into this state.
+        IDLE = 0;
+
+        // Processing jobs (e.g. printing).
+        PROCESSING = 1;
+
+        // Device cannot process jobs. User should fix the problem to resume the
+        // processing (e.g. printer is out of paper).
+        STOPPED = 2;
+    }
+
+    // Device cloud connectivity state.
+    enum CloudConnectionStateType {
+        UNKNOWN = 0;
+        NOT_CONFIGURED = 1;
+        ONLINE = 2;
+        OFFLINE = 3;
+    }
+
+    // Version of the CDS in the form "X.Y" where changes to Y are backwards
+    // compatible, and changes to X are not (required).
+    optional string version = 1;
+
+    // Whether device is connected to the server. It is not intended to be
+    // reported by the device, it's set by the server.
+    optional CloudConnectionStateType cloud_connection_state = 2;
+
+    // Defined for devices with printing capabilities.
+    optional PrinterStateSection printer = 3;
+
+    // Defined for devices with scanning capabilities.
+//    optional ScannerStateSection scanner = 4;
+}
+
+// Represents the printer state.
+message PrinterStateSection {
+
+    // Current printer state (required).
+    optional CloudDeviceState.StateType state = 1;
+
+    // State of the input trays.
+    optional InputTrayState input_tray_state = 2;
+
+    // State of the output bins.
+    optional OutputBinState output_bin_state = 3;
+
+    // State of the markers.
+    optional MarkerState marker_state = 4;
+
+    // State of the printer doors/covers/etc.
+    optional CoverState cover_state = 5;
+
+    // State of the printer media paths.
+    optional MediaPathState media_path_state = 6;
+
+    // Vendor-specific printer state.
+    optional VendorState vendor_state = 101;
+}
+
+// State of the device's input trays.
+message InputTrayState {
+
+    message Item {
+
+        enum StateType {
+            // Tray is functional.
+            OK = 0;
+            // Tray is out of media. Treated as error.
+            EMPTY = 1;
+            // Tray is open. Treated as error.
+            OPEN = 2;
+            // Tray is installed, but turned off or disconnected. Treated as error.
+            OFF = 3;
+            // Tray is present, but not functioning properly. Treated as error.
+            FAILURE = 4;
+        }
+
+        // ID of the tray (refers to CDD model) (required).
+        optional string vendor_id = 1;
+
+        // Current tray state (required).
+        optional StateType state = 2;
+        // Loaded media level, percent. Ranges from 0 (empty) to 100 (fully loaded).
+        optional int32 level_percent = 3;
+        // Vendor-specific message, ignored when state == OK.
+        optional string vendor_message = 101;
+    }
+
+    repeated Item item = 1;
+}
+
+// State of the device's output bins.
+message OutputBinState {
+
+    message Item {
+
+        enum StateType {
+            // Bin is functional.
+            OK = 0;
+            // Bin is full and cannot receive any more output. Treated as error.
+            FULL = 1;
+            // Bin is open. Treated as error.
+            OPEN = 2;
+            // Bin is installed, but turned off or disconnected. Treated as error.
+            OFF = 3;
+            // Bin is present, but not functioning properly. Treated as error.
+            FAILURE = 4;
+        }
+
+        // ID of the bin (refers to CDD model) (required).
+        optional string vendor_id = 1;
+
+        // Current bin state (required).
+        optional StateType state = 2;
+        // Used space, percent. Ranges from 0 (empty) to 100 (full).
+        optional int32 level_percent = 3;
+        // Vendor-specific message, ignored when state == OK.
+        optional string vendor_message = 101;
+    }
+
+    repeated Item item = 1;
+}
+
+// State of the device markers (toner/ink/staples/etc).
+message MarkerState {
+
+    message Item {
+
+        enum StateType {
+            // Marker is functional.
+            OK = 0;
+            // Marker resource is exhausted. Treated as error.
+            EXHAUSTED = 1;
+            // Marker is removed. Treated as error.
+            REMOVED = 2;
+            // Marker is present, but not functioning properly. Treated as error.
+            FAILURE = 3;
+        }
+
+        // ID of the marker (refers to CDD model) (required).
+        optional string vendor_id = 1;
+
+        // Current marker state (required).
+        optional StateType state = 2;
+        // Marker supply amount, percent. Ranges from 0 to 100.
+        optional int32 level_percent = 3;
+        // Estimated number of pages for which the marker supply amount will last.
+        optional int32 level_pages = 4;
+        // Vendor-specific message, ignored when state == OK.
+        optional string vendor_message = 101;
+    }
+
+    repeated Item item = 1;
+}
+
+// State of the device covers (door/cover/etc).
+message CoverState {
+
+    message Item {
+
+        enum StateType {
+            // Default cover state (closed, does not need any attention).
+            OK = 0;
+            // Cover is open. Treated as error.
+            OPEN = 1;
+            // Cover is not functioning properly. Treated as error.
+            FAILURE = 2;
+        }
+
+        // ID of the cover (refers to CDD model) (required).
+        optional string vendor_id = 1;
+
+        // Current cover state (required).
+        optional StateType state = 2;
+        // Vendor-specific message, ignored when state == OK.
+        optional string vendor_message = 101;
+    }
+
+    repeated Item item = 1;
+}
+
+// State of the device media paths.
+message MediaPathState {
+
+    message Item {
+
+        enum StateType {
+            // Path is functioning.
+            OK = 0;
+            // Media is jammed. Treated as error.
+            MEDIA_JAM = 1;
+            // Path is present, but not functioning properly. Treated as error.
+            FAILURE = 2;
+        }
+
+        // ID of the media path (refers to CDD model) (required).
+        optional string vendor_id = 1;
+
+        // Current state (required).
+        optional StateType state = 2;
+        // Vendor-specific message, ignored when state == OK.
+        optional string vendor_message = 101;
+    }
+
+    repeated Item item = 1;
+}
+
+// Vendor-specific state.
+message VendorState {
+
+    message Item {
+
+        enum StateType {
+            ERROR = 0;
+            WARNING = 1;
+            INFO = 2;
+        }
+
+        // Severity of the state (required).
+        optional StateType state = 1;
+        // Non-localized user-readable state description.
+        // New vendor state items should use description_localized instead. It is
+        // required that either description or description_localized is set.
+        optional string description = 2;
+        // Translations of state description.
+        // If not empty, must contain an entry with locale == EN.
+        repeated LocalizedString description_localized = 3;
+    }
+
+    repeated Item item = 1;
+}
+
+
+

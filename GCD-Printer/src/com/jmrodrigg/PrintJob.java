@@ -11,6 +11,9 @@ import java.util.Date;
  */
 public class PrintJob {
 
+    public static final String CONTENT_TYPE_PDF = "application/pdf";
+    public static final String CONTENT_TYPE_JPG = "image/jpeg";
+
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd - HH:mm");
 
     private String jobid;
@@ -49,12 +52,16 @@ public class PrintJob {
         return fileUrl;
     }
 
+    public String getRasterUrl() {
+        return rasterUrl;
+    }
+
     public int getPages() {
         return pages;
     }
 
-    public boolean isPDF() {
-        return contentType.equals("application/pdf");
+    public String getContentType() {
+        return contentType;
     }
 
     public String toString() {

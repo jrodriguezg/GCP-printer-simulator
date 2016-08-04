@@ -1,0 +1,887 @@
+
+option java_package = "com.jmrodrigg.proto";
+
+import "Utils.proto";
+
+// Description of a cloud-enabled device's capabilities and properties. Also
+// known as CDD.
+message CloudDeviceDescription {
+
+    // Version of the CDD in the form "X.Y" where changes to Y are backwards
+    // compatible, and changes to X are not (required).
+    optional string version = 1;
+
+    // Section of the CDD that specifically describes printers.
+    optional PrinterDescriptionSection printer = 101;
+
+    // Section of the CDD that specifically describes scanners.
+//    optional ScannerDescriptionSection scanner = 102;
+}
+
+// Section of a CDD that describes the capabilities and physical units of a
+// cloud-connected printer.
+message PrinterDescriptionSection {
+
+    // Content types (sometimes referred to as MIME types) that are supported by
+    // the printer.
+    //
+    // The order of these types determines which content type the document should
+    // be converted to. For example, if the types are ordered as:
+    //
+    //   [
+    //     {"content_type": "application/pdf"},
+    //     {"content_type": "image/pwg-raster"}
+    //   ]
+    //
+    // Then the document's content type will first be matched to any content type
+    // in the list. If there is a match, then the document will be sent to the
+    // printer as is. If there is no match, then the document will be converted to
+    // a content type which the server supports starting from the first option. In
+    // this example, if the document is sent as "text/html" and the printer
+    // supports "application/pdf" and "image/pwg-raster", then the document will
+    // be converted to "application/pdf" and not "image/pwg-raster", because
+    // "application/pdf" is declared earlier in this list.
+    repeated SupportedContentType supported_content_type = 1;
+
+    // Printing speeds that the printer can operate at.
+    optional PrintingSpeed printing_speed = 2;
+
+    // PWG raster configuration of the printer. Required if the printer supports
+    // image/pwg-raster content type, and it should be omitted otherwise.
+    // This allows a cloud service to understand how to rasterize a document in
+    // PWG-raster for the printer.
+    optional PwgRasterConfig pwg_raster_config = 3;
+
+    // Physical model of the printer's input trays.
+    repeated InputTrayUnit input_tray_unit = 4;
+
+    // Physical model of the printer's output bins.
+    repeated OutputBinUnit output_bin_unit = 5;
+
+    // Physical model of the printer's markers.
+    repeated Marker marker = 6;
+
+    // Physical model of the printer's covers.
+    repeated Cover cover = 7;
+
+    // Physical model of the printer's media paths.
+    repeated MediaPath media_path = 8;
+
+    // Vendor-provided printer capabilities.
+    repeated VendorCapability vendor_capability = 101;
+
+    // MarkerColor printing capabilities of the printer.
+    optional Color color = 102;
+
+    // Duplexing capabilities of the printer.
+    optional Duplex duplex = 103;
+
+    // Page/paper orientation capabilities of the printer.
+    optional PageOrientation page_orientation = 104;
+
+    // Multiple copy capability of the printer.
+    optional Copies copies = 105;
+
+    // Page margins capability of the printer.
+    optional Margins margins = 106;
+
+    // Printing quality or dots-per-inch (DPI) capabilities of the printer.
+    optional Dpi dpi = 107;
+
+    // Page fitting capabilities of the printer.
+    optional FitToPage fit_to_page = 108;
+
+    // Page range selection capability of the printer.
+    optional PageRange page_range = 109;
+
+    // Page or media size capabilities of the printer.
+    optional MediaSize media_size = 110;
+
+    // Paper collation capability of the printer.
+    optional Collate collate = 111;
+
+    // Reverse order printing capability of the printer.
+    optional ReverseOrder reverse_order = 112;
+}
+
+// Physical model of a printer cover.
+message Cover {
+    // Enumeration of cover types.
+    enum Type {
+        CUSTOM = 0;
+        DOOR = 1;
+        COVER = 2;
+    }
+
+    // Vendor-provided ID of the cover (required).
+    optional string vendor_id = 1;
+
+    // Type of the cover (required).
+    optional Type type = 2;
+
+    // Index of the cover.
+    optional int64 index = 3;
+
+    // Non-localized custom display name of the cover.
+    // New CDDs should use custom_display_name_localized instead. It is required
+    // that either custom_display_name or custom_display_name_localized is set
+    // if the cover's type is CUSTOM.
+    optional string custom_display_name = 4;
+
+    // Translations of custom display name of the cover.
+    // If not empty, must contain an entry with locale == EN.
+    repeated LocalizedString custom_display_name_localized = 5;
+}
+
+// Physical model of a media path of a printer. Media paths are the paths
+// through which print media flows.
+message MediaPath {
+    // Vendor-provided ID of a media path (required).
+    optional string vendor_id = 1;
+}
+
+// Flexible capability that can represent range-based, selection-based, or
+// typed-value-based capabilities.
+message VendorCapability {
+    enum Type {
+        RANGE = 0;
+        SELECT = 1;
+        TYPED_VALUE = 2;
+    }
+
+    // ID of the capability. Used in CJT to associate a ticket item with this
+    // capability (required).
+    optional string id = 1;
+
+    // Non-localized user-friendly string to represent this capability.
+    // New CDDs should use display_name_localized instead. It is required that
+    // either display_name or display_name_localized is set.
+    optional string display_name = 2;
+
+    // Type of this capability (required).
+    optional Type type = 3;
+
+    // Range-based capability definition.
+    optional RangeCapability range_cap = 4;
+
+    // Selection-based capability definition.
+    optional SelectCapability select_cap = 5;
+
+    // Typed-value-based capability definition.
+    optional TypedValueCapability typed_value_cap = 6;
+
+    // Translations of display name of this capability.
+    // If not empty, must contain an entry with locale == EN.
+    repeated LocalizedString display_name_localized = 7;
+}
+
+// Message that stores capability information specific to range-based
+// capabilities.
+message RangeCapability {
+    enum ValueType {
+        FLOAT = 0;
+        INTEGER = 1;
+    }
+
+    // Data type of the value of the range capability (required).
+    optional ValueType value_type = 1;
+    optional string default = 2;
+    optional string min = 3;
+    optional string max = 4;
+}
+
+// Selection-based device capability. Allows the user to select one or many of
+// a set of options.
+message SelectCapability {
+
+    // A user-selectable option of the vendor capability.
+    message Option {
+
+        // A single string that represents the value of this option. This value
+        // will be used in the VendorTicketItem.value field (required).
+        optional string value = 1;
+
+        // Non-localized user-friendly string to represent this option.
+        // New CDDs should use display_name_localized instead. It is required that
+        // either display_name or display_name_localized is set.
+        optional string display_name = 2;
+
+        // Whether this option is the default option. Only one option should be
+        // marked as default.
+        optional bool is_default = 3 [default = false];
+
+        // Translations of display name of the option.
+        // If not empty, must contain an entry with locale == EN.
+        repeated LocalizedString display_name_localized = 4;
+    }
+
+    // List of options available for this capability.
+    repeated Option option = 1;
+}
+
+// Message that stores capability information specific to typed-value-based
+// capabilities.
+message TypedValueCapability {
+    enum ValueType {
+        BOOLEAN = 0;
+        FLOAT = 1;
+        INTEGER = 2;
+        STRING = 3;
+    }
+
+    // Type of data of the typed-value capability (required).
+    optional ValueType value_type = 1;
+    // Default value of the typed-value capability.
+    optional string default = 2;
+}
+
+// Property that defines what content types the printer can print natively.
+message SupportedContentType {
+    // Content type (e.g. "image/png" or "application/pdf"). Use */* if your
+    // printer supports all formats (required).
+    optional string content_type = 1;
+
+    // Minimum supported version of the content type if applicable (e.g. "1.5").
+    optional string min_version = 2;
+
+    // Maximum supported version of the content type if applicable (e.g. "1.5").
+    optional string max_version = 3;
+}
+
+// Capability that defines a default and maximum value for multiple copies on a
+// device.
+message Copies {
+    optional int32 default = 1;
+    optional int32 max = 2;
+}
+
+// Capability that defines the margins available on a device (including a custom
+// one). Margins are measured in microns.
+message Margins {
+    // Enumerates the set of predefined types of margins. Devices should use these
+    // types to semantically describe the margins option. This type will be used
+    // for UI purposes only.
+    enum Type {
+        BORDERLESS = 0;
+        STANDARD = 1;
+        CUSTOM = 2;
+    }
+
+    message Option {
+        // Type of margin option (required).
+        optional Type type = 1;
+
+        // Top margin of the page (required).
+        optional int32 top_microns = 2;
+
+        // Right margin of the page (required).
+        optional int32 right_microns = 3;
+
+        // Bottom margin of the page (required).
+        optional int32 bottom_microns = 4;
+
+        // Left margin of the page (required).
+        optional int32 left_microns = 5;
+
+        optional bool is_default = 6 [default = false];
+    }
+
+    repeated Option option = 1;
+}
+
+// Physical model of a printer marker.
+message Marker {
+    // Enumeration of types of printer markers.
+    enum Type {
+        CUSTOM = 0;
+        TONER = 1;
+        INK = 2;
+        STAPLES = 3;
+    }
+
+    // Message that describes the color of a marker.
+    message Color {
+        // Enumeration of color types of the printer marker.
+        enum Type {
+            CUSTOM = 0;
+            BLACK = 1;
+            COLOR = 2;
+            CYAN = 3;
+            MAGENTA = 4;
+            YELLOW = 5;
+            LIGHT_CYAN = 6;
+            LIGHT_MAGENTA = 7;
+            GRAY = 8;
+            LIGHT_GRAY = 9;
+            PIGMENT_BLACK = 10;
+            MATTE_BLACK = 11;
+            PHOTO_CYAN = 12;
+            PHOTO_MAGENTA = 13;
+            PHOTO_YELLOW = 14;
+            PHOTO_GRAY = 15;
+            RED = 16;
+            GREEN = 17;
+            BLUE = 18;
+        }
+
+        // Required.
+        optional Type type = 1;
+
+        // Non-localized custom display name of the color.
+        // New CDDs should use custom_display_name_localized instead. It is required
+        // that either custom_display_name or custom_display_name_localized is set
+        // if the color's type is CUSTOM.
+        optional string custom_display_name = 2;
+
+        // Translations of custom display name of the color.
+        // If not empty, must contain an entry with locale == EN.
+        repeated LocalizedString custom_display_name_localized = 3;
+    }
+
+    // Vendor-provided ID of the marker (required).
+    optional string vendor_id = 1;
+
+    // Type of marker (required).
+    optional Type type = 2;
+
+    // MarkerColor of the marker. Only needed if marker type is INK or TONER.
+    optional Color color = 3;
+
+    // Non-localized custom display name of the marker.
+    // New CDDs should use custom_display_name_localized instead. It is required
+    // that either custom_display_name or custom_display_name_localized is set
+    // if the marker's type is CUSTOM.
+    optional string custom_display_name = 4;
+
+    // Translations of custom display name of the marker.
+    // If not empty, must contain an entry with locale == EN.
+    repeated LocalizedString custom_display_name_localized = 5;
+}
+
+// Capability that defines the 2D image quality levels available on a device.
+message Dpi {
+    message Option {
+        // Horizontal DPI (required).
+        optional int32 horizontal_dpi = 1;
+
+        // Vertical DPI (required).
+        optional int32 vertical_dpi = 2;
+
+        optional bool is_default = 3 [default = false];
+
+        // Non-localized custom display name to override the default display name
+        // which consists of "{$horizontal_dpi}x{$vertical_dpi} dpi".
+        // New CDDs should use custom_display_name_localized instead.
+        optional string custom_display_name = 4;
+
+        // Vendor-provided ID for the dpi option. Used to disambiguate dpi options
+        // that may have the same horizontal and vertical dpi but a different effect
+        // on the printer.
+        optional string vendor_id = 5;
+
+        // Translations of custom display name of the option, if empty,
+        // "{$horizontal_dpi}x{$vertical_dpi} dpi" will be used. If not empty, must
+        // contain an entry with locale == EN.
+        repeated LocalizedString custom_display_name_localized = 6;
+    }
+
+    repeated Option option = 1;
+    optional int32 min_horizontal_dpi = 2;
+    optional int32 max_horizontal_dpi = 3;
+    optional int32 min_vertical_dpi = 4;
+    optional int32 max_vertical_dpi = 5;
+}
+
+// Capability that defines the media sizes available on a device.
+message MediaSize {
+    // Enumeration of media size names. This is used for UI purposes.
+    enum Name {
+        CUSTOM = 0;
+
+        // North American standard sheet media names.
+        NA_INDEX_3X5 = 100;
+        NA_PERSONAL = 101;
+        NA_MONARCH = 102;
+        NA_NUMBER_9 = 103;
+        NA_INDEX_4X6 = 104;
+        NA_NUMBER_10 = 105;
+        NA_A2 = 106;
+        NA_NUMBER_11 = 107;
+        NA_NUMBER_12 = 108;
+        NA_5X7 = 109;
+        NA_INDEX_5X8 = 110;
+        NA_NUMBER_14 = 111;
+        NA_INVOICE = 112;
+        NA_INDEX_4X6_EXT = 113;
+        NA_6X9 = 114;
+        NA_C5 = 115;
+        NA_7X9 = 116;
+        NA_EXECUTIVE = 117;
+        NA_GOVT_LETTER = 118;
+        NA_GOVT_LEGAL = 119;
+        NA_QUARTO = 120;
+        NA_LETTER = 121;
+        NA_FANFOLD_EUR = 122;
+        NA_LETTER_PLUS = 123;
+        NA_FOOLSCAP = 124;
+        NA_LEGAL = 125;
+        NA_SUPER_A = 126;
+        NA_9X11 = 127;
+        NA_ARCH_A = 128;
+        NA_LETTER_EXTRA = 129;
+        NA_LEGAL_EXTRA = 130;
+        NA_10X11 = 131;
+        NA_10X13 = 132;
+        NA_10X14 = 133;
+        NA_10X15 = 134;
+        NA_11X12 = 135;
+        NA_EDP = 136;
+        NA_FANFOLD_US = 137;
+        NA_11X15 = 138;
+        NA_LEDGER = 139;
+        NA_EUR_EDP = 140;
+        NA_ARCH_B = 141;
+        NA_12X19 = 142;
+        NA_B_PLUS = 143;
+        NA_SUPER_B = 144;
+        NA_C = 145;
+        NA_ARCH_C = 146;
+        NA_D = 147;
+        NA_ARCH_D = 148;
+        NA_ASME_F = 149;
+        NA_WIDE_FORMAT = 150;
+        NA_E = 151;
+        NA_ARCH_E = 152;
+        NA_F = 153;
+
+        // Chinese standard sheet media size names.
+        ROC_16K = 200;
+        ROC_8K = 201;
+        PRC_32K = 202;
+        PRC_1 = 203;
+        PRC_2 = 204;
+        PRC_4 = 205;
+        PRC_5 = 206;
+        PRC_8 = 207;
+        PRC_6 = 208;
+        PRC_3 = 209;
+        PRC_16K = 210;
+        PRC_7 = 211;
+        OM_JUURO_KU_KAI = 212;
+        OM_PA_KAI = 213;
+        OM_DAI_PA_KAI = 214;
+        PRC_10 = 215;
+
+        // ISO standard sheet media size names.
+        ISO_A10 = 301;
+        ISO_A9 = 302;
+        ISO_A8 = 303;
+        ISO_A7 = 304;
+        ISO_A6 = 305;
+        ISO_A5 = 306;
+        ISO_A5_EXTRA = 307;
+        ISO_A4 = 308;
+        ISO_A4_TAB = 309;
+        ISO_A4_EXTRA = 310;
+        ISO_A3 = 311;
+        ISO_A4X3 = 312;
+        ISO_A4X4 = 313;
+        ISO_A4X5 = 314;
+        ISO_A4X6 = 315;
+        ISO_A4X7 = 316;
+        ISO_A4X8 = 317;
+        ISO_A4X9 = 318;
+        ISO_A3_EXTRA = 319;
+        ISO_A2 = 320;
+        ISO_A3X3 = 321;
+        ISO_A3X4 = 322;
+        ISO_A3X5 = 323;
+        ISO_A3X6 = 324;
+        ISO_A3X7 = 325;
+        ISO_A1 = 326;
+        ISO_A2X3 = 327;
+        ISO_A2X4 = 328;
+        ISO_A2X5 = 329;
+        ISO_A0 = 330;
+        ISO_A1X3 = 331;
+        ISO_A1X4 = 332;
+        ISO_2A0 = 333;
+        ISO_A0X3 = 334;
+        ISO_B10 = 335;
+        ISO_B9 = 336;
+        ISO_B8 = 337;
+        ISO_B7 = 338;
+        ISO_B6 = 339;
+        ISO_B6C4 = 340;
+        ISO_B5 = 341;
+        ISO_B5_EXTRA = 342;
+        ISO_B4 = 343;
+        ISO_B3 = 344;
+        ISO_B2 = 345;
+        ISO_B1 = 346;
+        ISO_B0 = 347;
+        ISO_C10 = 348;
+        ISO_C9 = 349;
+        ISO_C8 = 350;
+        ISO_C7 = 351;
+        ISO_C7C6 = 352;
+        ISO_C6 = 353;
+        ISO_C6C5 = 354;
+        ISO_C5 = 355;
+        ISO_C4 = 356;
+        ISO_C3 = 357;
+        ISO_C2 = 358;
+        ISO_C1 = 359;
+        ISO_C0 = 360;
+        ISO_DL = 361;
+        ISO_RA2 = 362;
+        ISO_SRA2 = 363;
+        ISO_RA1 = 364;
+        ISO_SRA1 = 365;
+        ISO_RA0 = 366;
+        ISO_SRA0 = 367;
+
+        // Japanese standard sheet media size names.
+        JIS_B10 = 400;
+        JIS_B9 = 401;
+        JIS_B8 = 402;
+        JIS_B7 = 403;
+        JIS_B6 = 404;
+        JIS_B5 = 405;
+        JIS_B4 = 406;
+        JIS_B3 = 407;
+        JIS_B2 = 408;
+        JIS_B1 = 409;
+        JIS_B0 = 410;
+        JIS_EXEC = 411;
+        JPN_CHOU4 = 412;
+        JPN_HAGAKI = 413;
+        JPN_YOU4 = 414;
+        JPN_CHOU2 = 415;
+        JPN_CHOU3 = 416;
+        JPN_OUFUKU = 417;
+        JPN_KAHU = 418;
+        JPN_KAKU2 = 419;
+
+        // Other metric standard sheet media size names.
+        OM_SMALL_PHOTO = 500;
+        OM_ITALIAN = 501;
+        OM_POSTFIX = 502;
+        OM_LARGE_PHOTO = 503;
+        OM_FOLIO = 504;
+        OM_FOLIO_SP = 505;
+        OM_INVITE = 506;
+    }
+
+    message Option {
+        optional Name name = 1 [default = CUSTOM];
+        // Both of the fields ("width_microns" and "height_microns") are required
+        // if "is_continuous_feed" is set to false. If "is_continuous_feed" is set
+        // to true only one of these fields is required.
+        optional int32 width_microns = 2;
+        optional int32 height_microns = 3;
+        optional bool is_continuous_feed = 4 [default = false];
+        optional bool is_default = 5 [default = false];
+
+        // Non-localized user-friendly string that represents this option.
+        // New CDDs should use custom_display_name_localized instead. It is required
+        // that either custom_display_name or custom_display_name_localized is set
+        // for options whose "name" field is CUSTOM.
+        optional string custom_display_name = 6;
+
+        // Vendor-provided ID for the media size option. Used to disambiguate media
+        // sizes that may have the same width and height but a different effect on
+        // the printer.
+        optional string vendor_id = 7;
+
+        // Translations of custom display name of the option.
+        // If not empty, must contain an entry with locale == EN.
+        repeated LocalizedString custom_display_name_localized = 8;
+    }
+
+    repeated Option option = 1;
+    optional int32 max_width_microns = 2;
+    optional int32 max_height_microns = 3;
+    optional int32 min_width_microns = 4;
+    optional int32 min_height_microns = 5;
+}
+
+// Capability that defines the default collation setting on a device.
+message Collate {
+    optional bool default = 1 [default = true];
+}
+
+// Capability that defines the default reverse-printing-order setting on a
+// device.
+message ReverseOrder {
+    optional bool default = 1 [default = false];
+}
+
+// Physical model of a printer input tray.
+message InputTrayUnit {
+    // Enumeration of input tray types.
+    enum Type {
+        CUSTOM = 0;
+        INPUT_TRAY = 1;
+        BYPASS_TRAY = 2;
+        MANUAL_FEED_TRAY = 3;
+        LCT = 4;  // Large capacity tray.
+        ENVELOPE_TRAY = 5;
+        ROLL = 6;
+    }
+
+    // Vendor-provided ID of the input tray (required).
+    optional string vendor_id = 1;
+
+    // Type of input tray (required).
+    optional Type type = 2;
+
+    // Index of the input tray.
+    optional int64 index = 3;
+
+    // Non-localized custom display name of the input tray.
+    // New CDDs should use custom_display_name_localized instead. It is required
+    // that either custom_display_name or custom_display_name_localized is set if
+    // the tray's type is CUSTOM.
+    optional string custom_display_name = 4;
+
+    // Translations of custom display name of the input tray.
+    // If not empty, must contain an entry with locale == EN.
+    repeated LocalizedString custom_display_name_localized = 5;
+}
+
+// Configuration of how printer should receive PWG raster images.
+message PwgRasterConfig {
+
+    message Resolution {
+        optional int32 cross_feed_dir = 1;  // Horizontal resolution in DPI.
+        optional int32 feed_dir = 2;  // Vertical resolution in DPI.
+    }
+
+    // Resolutions (in DPI) of the pages that the printer supports in PWG-raster
+    // format. The resolution MUST be supported for every page media supported by
+    // the printer. (Same as PwgRasterDocumentResolutionSupported PWG-raster
+    // semantic model element.) This field is strongly recommended, as it helps
+    // GCP to decide which resolutions are supported by the printer for PWG-raster
+    // documents if it has to downscale the document to a lower resolution.
+    //
+    // This list can be a subset of the full set of resolutions supported by the
+    // printer (in formats different from PWG-raster, e.g. PDF), but it MUST
+    // include an NxN DPI resolution where N <= 360 and N evenly divides all
+    // resolutions supported by the printer. A resolution NxN where N >= 600
+    // (possibly 600 or 720) is also strongly recommended.
+    //
+    // GCP will generate PWG-raster pages not necessarily at the resolution
+    // reported in the ticket, but the actual DPIs of the page (horizontal and
+    // vertical) will always perfectly divide the corresponding values reported in
+    // the ticket.
+    repeated Resolution document_resolution_supported = 2;
+
+    // List of PWG-raster document types (in terms of color space and bits per
+    // color) supported by the printer. MarkerColor printers MUST support SRGB_8 and
+    // possibly SGRAY_8. Monochrome printers must support either SRGB_8 or
+    // SGRAY_8. However, any printer that doesn't support SGRAY_8 must be able
+    // to perform conversion from RGB to grayscale if it receives a PWG-raster
+    // document in SRGB and the print job ticket specifies monochrome printing.
+    //
+    // This field is strongly recommended, and we recommend to include all types
+    // supported by the printer, as GCP may start serving more document types in
+    // the future.
+    repeated PwgDocumentTypeSupported document_type_supported = 3;
+
+    // Describes which transformation needs to be applied to back pages in
+    // duplexing in order to have them printed properly.
+    // The value mainly depends on how duplexing works on the printer, and the
+    // actual effect depends on which duplexing is specified in the ticket.
+    enum DocumentSheetBack {
+        // No special treatment for back pages (same as front page).
+        NORMAL = 0;
+        // Back pages are rotated 180 degrees if the document is portrait
+        // (TwoSidedLongEdge duplexing).
+        ROTATED = 1;
+        // Back pages are rotated 180 degrees if the document is landscape
+        // (TwoSidedShortEdge duplexing, opposite of ROTATED).
+        MANUAL_TUMBLE = 2;
+        // Page is flipped upside-down if portrait (TwoSidedLongEdge duplexing),
+        // left-right if landscape (TwoSidedShortEdge duplexing).
+        FLIPPED = 3;
+    }
+    // Same as PwgRasterDocumentSheetBack PWG-raster semantic model element.
+    // Default value is ROTATED.
+    optional DocumentSheetBack document_sheet_back = 4 [default = ROTATED];
+
+    // Instructs GCP that the printer wants to print pages from the last to the
+    // first. In that case GCP will stream PWG-raster pages in that order.
+    optional bool reverse_order_streaming = 5;
+
+    // Instructs GCP that the printer prefers receiving pages rotated 180 degrees.
+    // This rotation is in addition to possible additional rotations of even pages
+    // based on document_sheet_back in case of duplexing.
+    optional bool rotate_all_pages = 6;
+
+    // PWG-raster document types (in terms of color space and bits per color).
+    // This list is based on the PWG-raster specs of March 14, 2012, and it
+    // will be extended without notice if new types are added to newer versions
+    // of the specs. If a new type is not accepted by GCP capability parser please
+    // inform the GCP team. (This doesn't mean that GCP will start sending
+    // documents of the new kind.)
+    //
+    // The string names are identical to the keyword attribute values in
+    // PWG-raster documentation, except they are uppercase, and dashes are
+    // replaced by underscores.
+    enum PwgDocumentTypeSupported {
+        BLACK_1 = 1;
+        SGRAY_1 = 2;
+        ADOBE_RGB_8 = 3;
+        BLACK_8 = 4;
+        CMYK_8 = 5;
+        DEVICE1_8 = 6;
+        DEVICE2_8 = 7;
+        DEVICE3_8 = 8;
+        DEVICE4_8 = 9;
+        DEVICE5_8 = 10;
+        DEVICE6_8 = 11;
+        DEVICE7_8 = 12;
+        DEVICE8_8 = 13;
+        DEVICE9_8 = 14;
+        DEVICE10_8 = 15;
+        DEVICE11_8 = 16;
+        DEVICE12_8 = 17;
+        DEVICE13_8 = 18;
+        DEVICE14_8 = 19;
+        DEVICE15_8 = 20;
+        RGB_8 = 21;
+        SGRAY_8 = 22;
+        SRGB_8 = 23;
+        ADOBE_RGB_16 = 24;
+        BLACK_16 = 25;
+        CMYK_16 = 26;
+        DEVICE1_16 = 27;
+        DEVICE2_16 = 28;
+        DEVICE3_16 = 29;
+        DEVICE4_16 = 30;
+        DEVICE5_16 = 31;
+        DEVICE6_16 = 32;
+        DEVICE7_16 = 33;
+        DEVICE8_16 = 34;
+        DEVICE9_16 = 35;
+        DEVICE10_16 = 36;
+        DEVICE11_16 = 37;
+        DEVICE12_16 = 38;
+        DEVICE13_16 = 39;
+        DEVICE14_16 = 40;
+        DEVICE15_16 = 41;
+        RGB_16 = 42;
+        SGRAY_16 = 43;
+        SRGB_16 = 44;
+    }
+
+    // [Deprecated: Please use the other fields of PwgRasterConfig.]
+    // Transformation to apply to pages during PWG rasterization.
+    message Transformation {
+        // Types of transformation operations to apply.
+        enum Operation {
+            // Rotate pages 180 degrees.
+            ROTATE_180 = 0;
+
+            // Flip pages along the long edge of the paper.
+            FLIP_ON_LONG_EDGE = 1;
+
+            // Flip pages along the short edge of the paper.
+            FLIP_ON_SHORT_EDGE = 2;
+        }
+
+        // Selectors of which pages to apply the transformation to.
+        enum Operand {
+            // Apply transformation to all pages.
+            ALL_PAGES = 0;
+            // Apply transformation to even pages only when duplexing (deprecated,
+            // instead use EVEN_PAGES and specify appropriate duplex types).
+            ONLY_DUPLEXED_EVEN_PAGES = 1;
+            // Apply transformation to odd pages only when duplexing (deprecated,
+            // instead use ODD_PAGES and specify appropriate duplex types).
+            ONLY_DUPLEXED_ODD_PAGES = 2;
+            // Apply transformation to even pages.
+            EVEN_PAGES = 3;
+            // Apply transformation to odd pages.
+            ODD_PAGES = 4;
+        }
+        // Required.
+        optional Operation operation = 1;
+        // Required.
+        optional Operand operand = 2;
+        // Duplex types that the transformation applies to. Leave empty if the
+        // transformation is applicable to all duplex types.
+        repeated Duplex.Type duplex_type = 3;
+    }
+
+    // [Deprecated and only partially supported. Please use the other fields of
+    // PwgRasterConfig.
+    // Out of all possible transformations GCP will only support rotating all
+    // pages, but for that we strongly recommend using the rotate_all_pages
+    // boolean field instead.]
+    // What transformations to apply to pages in the print job.
+    repeated Transformation transformation = 1;
+}
+
+// Property that defines what speeds (in pages per minute) the printer can
+// operate at.
+message PrintingSpeed {
+    // Available speed of the printer.
+    //
+    // Specify settings that are associated with the given speed. If a setting
+    // is left unset, then it will be assumed that the speed is independent of
+    // that setting. For example, the following Option
+    //
+    //   {
+    //     "speed_ppm": 5.5,
+    //     "color_type": ["STANDARD_MONOCHROME"],
+    //     "media_size_name": ["NA_LETTER", "ISO_A4"]
+    //   }
+    //
+    // indicates that the printer prints at 5.5 pages per minute when printing in
+    // STANDARD_MONOCHROME in either NA_LETTER or ISO_A4 paper sizes.
+    message Option {
+        // Speed measured in pages per minute (required).
+        optional float speed_ppm = 1;
+
+        // Types of color settings that operate at this speed.
+        repeated Color.Type color_type = 2;
+
+        // Names of media sizes that operate at this speed.
+        repeated MediaSize.Name media_size_name = 3;
+    }
+
+    // Speeds that the printer can operate at.
+    repeated Option option = 1;
+}
+
+// Physical model of a printer output bin.
+message OutputBinUnit {
+    // Enumeration of output bin types.
+    enum Type {
+        CUSTOM = 0;
+        OUTPUT_BIN = 1;
+        MAILBOX = 2;
+        STACKER = 3;
+    }
+
+    // Vendor-provided ID of the output bin (required).
+    optional string vendor_id = 1;
+
+    // Type of output bin (required).
+    optional Type type = 2;
+
+    // Index of the output bin.
+    optional int64 index = 3;
+
+    // Non-localized custom display name of the output bin.
+    // New CDDs should use custom_display_name_localized instead. It is required
+    // that either custom_display_name or custom_display_name_localized is set if
+    // the bin's type is CUSTOM.
+    optional string custom_display_name = 4;
+
+    // Translations of custom display name of the output bin.
+    // If not empty, must contain an entry with locale == EN.
+    repeated LocalizedString custom_display_name_localized = 5;
+}
