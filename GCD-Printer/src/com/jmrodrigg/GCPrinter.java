@@ -78,7 +78,7 @@ public class GCPrinter implements CloudPrintConsts {
                 break;
             case "S":
             default:
-                file = file = new File((Main.class.getClassLoader().getResource("samples/capabilities.json")).toURI());
+                file = new File((Main.class.getClassLoader().getResource("samples/capabilities.json")).toURI());
                 break;
         }
 
