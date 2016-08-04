@@ -43,42 +43,57 @@ public class GCPClient implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> submit(String access_token, String printerid) throws IOException {
+    public static Pair<Integer,String> submit(String access_token, String printerid, String jobType) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
         headers.setAuthorization("OAuth " + access_token);
 
-        // Open the bitmap and adjust paper size to match roll width:
-        int resolution = 300;
-        int roll_width = 609600;
+        String ticket;
 
-        BufferedImage picture = ImageIO.read(new File("GCD-Client/samples/Barcelona.jpg"));
-        int height_microns = (int) ((picture.getHeight() * 25.4f * 1000) / resolution);
-        int width_microns = (int) ((picture.getWidth() * 25.4f * 1000) / resolution);
+        if (jobType.equals("J")) {
+            // Open the bitmap and adjust paper size to match roll width:
+            int resolution = 300;
+            int roll_width = 609600;
 
-        float scale = (float) roll_width / width_microns;
+            BufferedImage picture = ImageIO.read(new File("GCD-Client/samples/Barcelona.jpg"));
+            int height_microns = (int) ((picture.getHeight() * 25.4f * 1000) / resolution);
+            int width_microns = (int) ((picture.getWidth() * 25.4f * 1000) / resolution);
 
-        int scaled_height = (int) (scale * height_microns);
+            float scale = (float) roll_width / width_microns;
+
+            int scaled_height = (int) (scale * height_microns);
+
+            ticket = "{" +
+                        "\"version\": " + "\"1.0\"," +
+                        "\"print\": {" +
+                            "\"media_size\": {" +
+                                "\"width_microns\": " + roll_width + "," +
+                                "\"height_microns\": " + scaled_height + "," +
+                                "\"is_continuous_feed\": true" +
+                            "}," +
+                            "\"dpi\": {" +
+                                "\"horizontal_dpi\": " + resolution + "," +
+                                "\"vertical_dpi\": " + resolution +
+                            "}" +
+                        "}" +
+                    "}";
+        } else {
+            ticket = "{" +
+                        "\"version\": " + "\"1.0\"," +
+                        "\"print\": {" +
+                            "\"media_size\": {" +
+                                "\"width_microns\": 609600," +  //TODO adjust paper width to media loaded in printer.
+                                "\"height_microns\": 220000," + //TODO adjust paper length to document needs.
+                                "\"is_continuous_feed\": true" +
+                            "}" +
+                        "}" +
+                    "}";
+        }
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("printerid",printerid);
         parameters.put("title","CloudPrint Job");
-
-        String ticket = "{" +
-                            "\"version\": " + "\"1.0\"," +
-                            "\"print\": {" +
-                                "\"media_size\": {" +
-                                    "\"width_microns\": " + roll_width + "," +
-                                    "\"height_microns\": " + scaled_height + "," +
-                                    "\"is_continuous_feed\": true" +
-                                "}," +
-                                "\"dpi\": {" +
-                                    "\"horizontal_dpi\": " + resolution +"," +
-                                    "\"vertical_dpi\": " + resolution +
-                                "}," +
-                            "}" +
-                        "}";
 
         parameters.put("ticket",ticket);
 
@@ -95,7 +110,10 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // 2.- Document:
-        File file = new File("GCD-Client/samples/Barcelona.jpg");
+        File file;
+
+        if (jobType.equals("J")) file = new File("GCD-Client/samples/Barcelona.jpg");
+        else file = new File("GCD-Client/samples/A4_land.pdf");
 
         FileContent fileContent = new FileContent("application/octet-stream",file);
         MultipartContent.Part part = new MultipartContent.Part(fileContent);

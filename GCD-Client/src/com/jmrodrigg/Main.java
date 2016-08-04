@@ -71,7 +71,12 @@ public class Main {
                             System.out.print("Select a printer to submit the job to: ");
                             int printernum = Integer.parseInt(new Scanner(System.in).next());
                             System.out.println("");
-                            if (submitJob(printers.get(printernum).getPrinterId())) System.out.println("Job sent successfully.");
+
+                            System.out.print("Which type of job: (P)DF or (J)PEG? ");
+                            String job_type = new Scanner(System.in).next();
+                            System.out.println("");
+
+                            if (submitJob(printers.get(printernum).getPrinterId(),job_type)) System.out.println("Job sent successfully.");
                             else System.out.println("Error while submitting job.");
                         }
                         break;
@@ -89,9 +94,9 @@ public class Main {
         } else System.out.print("Error: Unauthorized.");
     }
 
-    private static boolean submitJob(String printerid) {
+    private static boolean submitJob(String printerid, String jobType) {
         try {
-            Pair<Integer, String> response = submit(oAuth.getAccessToken(), printerid);
+            Pair<Integer, String> response = submit(oAuth.getAccessToken(), printerid, jobType);
 
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
             return object.get("success").getAsBoolean();
