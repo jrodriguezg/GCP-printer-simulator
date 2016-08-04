@@ -57,7 +57,7 @@ public class GCPClient implements CloudPrintConsts {
             int resolution = 300;
             int roll_width = 609600;
 
-            BufferedImage picture = ImageIO.read(new File("GCD-Client/samples/Barcelona.jpg"));
+            BufferedImage picture = ImageIO.read(new File((Main.class.getClassLoader().getResource("samples/Barcelona.jpg")).toURI()));
             int height_microns = (int) ((picture.getHeight() * 25.4f * 1000) / resolution);
             int width_microns = (int) ((picture.getWidth() * 25.4f * 1000) / resolution);
 
