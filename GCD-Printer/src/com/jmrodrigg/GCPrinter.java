@@ -2,7 +2,12 @@ package com.jmrodrigg;
 
 import com.google.api.client.http.*;
 import com.google.api.client.util.IOUtils;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
+import com.jmrodrigg.model.CJT.CloudJobTicket;
+import com.jmrodrigg.model.PJS.Job;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -117,7 +122,7 @@ public class GCPrinter implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> getJobTicket(String access_token, String jobId) throws IOException {
+    public static CloudJobTicket getJobTicket(String access_token, String jobId) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -130,10 +135,14 @@ public class GCPrinter implements CloudPrintConsts {
         UrlEncodedContent content = new UrlEncodedContent(parameters);
 
         HttpResponse response = requestFactory.buildPostRequest(new GenericUrl(PRINT_URL + TICKET), content).setHeaders(headers).execute();
-        return new Pair<>(response.getStatusCode(),response.parseAsString());
+
+        Gson gson = new Gson();
+        JsonObject printJobTicket = new JsonParser().parse(response.parseAsString()).getAsJsonObject();
+
+        return gson.fromJson(printJobTicket, CloudJobTicket.class);
     }
 
-    public static void downloadFile(String access_token, PrintJob job, boolean force_raster) throws IOException {
+    public static void downloadFile(String access_token, Job job, boolean force_raster) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -141,8 +150,8 @@ public class GCPrinter implements CloudPrintConsts {
 
         GenericUrl url;
 
-        if (force_raster) url = new GenericUrl(job.getRasterUrl());
-        else url = new GenericUrl(job.getFileUrl());
+        if (force_raster) url = new GenericUrl(job.rasterUrl);
+        else url = new GenericUrl(job.fileUrl);
 
         HttpResponse response = requestFactory.buildPostRequest(url, new EmptyContent()).setHeaders(headers).execute();
 
@@ -150,7 +159,7 @@ public class GCPrinter implements CloudPrintConsts {
 
             String extension;
 
-            switch (job.getContentType()) {
+            switch (job.contentType) {
                 case PrintJob.CONTENT_TYPE_JPG:
                     extension = ".jpg";
                     break;
@@ -165,7 +174,7 @@ public class GCPrinter implements CloudPrintConsts {
             extension = force_raster ? ".pwg" : extension;
 
             InputStream is = response.getContent();
-            FileOutputStream fos = new FileOutputStream(new File(job.getTitle() + extension));
+            FileOutputStream fos = new FileOutputStream(new File(job.title + extension));
             IOUtils.copy(is,fos);
             fos.close();
         } else System.out.println("Error downloading file.");

@@ -27,7 +27,7 @@ public class PageRange {
     @Override
     public String toString() {
         return "PageRange{" +
-                "interval=" + interval.toString() +
+                "interval=" + interval +
                 '}';
     }
 }
