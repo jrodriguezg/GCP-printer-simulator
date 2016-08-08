@@ -1,7 +1,5 @@
 package com.jmrodrigg.model.Utils;
 
-import java.util.List;
-
 /**
  * Author: jrodriguezg
  * Date: 7/29/16
@@ -74,13 +72,5 @@ public class PrintingColor {
             this.index = index;
             this.value = value;
         }
-    }
-
-    private class Option {
-        String vendor_id;
-        Type type;
-        String custom_display_name;
-        Boolean is_default;
-        List<LocalizedString> custom_display_name_localized;
     }
 }
