@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
 import com.jmrodrigg.model.CJT.CloudJobTicket;
 import com.jmrodrigg.model.PJS.Job;
+import com.jmrodrigg.model.Utils.ContentTypeConsts;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -160,10 +161,10 @@ public class GCPrinter implements CloudPrintConsts {
             String extension;
 
             switch (job.contentType) {
-                case PrintJob.CONTENT_TYPE_JPG:
+                case ContentTypeConsts.CONTENT_TYPE_JPG:
                     extension = ".jpg";
                     break;
-                case PrintJob.CONTENT_TYPE_PDF:
+                case ContentTypeConsts.CONTENT_TYPE_PDF:
                     extension = ".pdf";
                     break;
                 default:
@@ -180,7 +181,7 @@ public class GCPrinter implements CloudPrintConsts {
         } else System.out.println("Error downloading file.");
     }
 
-    public static void printJob(String access_token, PrintJob job) throws IOException {
+    public static void printJob(String access_token, Job job) throws IOException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -188,7 +189,7 @@ public class GCPrinter implements CloudPrintConsts {
 
         // 1.- Update job status to "IN PROGRESS":
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("jobid",job.getJobId());
+        parameters.put("jobid",job.id);
         parameters.put("semantic_state_diff","{\"state\": {\"type\": \"IN_PROGRESS\"}}");
 
         UrlEncodedContent content = new UrlEncodedContent(parameters);
@@ -199,11 +200,11 @@ public class GCPrinter implements CloudPrintConsts {
 
             try {
                 // 2.- For each page, update the count:
-                for (i=0; i<job.getPages(); i++) {
+                for (i=0; i<job.numberOfPages; i++) {
                     Thread.sleep(5000);
 
                     parameters = new HashMap<>();
-                    parameters.put("jobid", job.getJobId());
+                    parameters.put("jobid", job.id);
                     parameters.put("semantic_state_diff", "{\"pages_printed\": " + (i + 1) + "}");
 
                     content = new UrlEncodedContent(parameters);
@@ -211,7 +212,7 @@ public class GCPrinter implements CloudPrintConsts {
                     if (response.getStatusCode() == HttpStatusCodes.STATUS_CODE_OK) {
                         System.out.println("Page " + (i + 1) + " printed.");
 
-                        if ((i+1) < job.getPages()) {
+                        if ((i+1) < job.numberOfPages) {
                             System.out.print("(C)ontinue or (A)bort? ");
                             String action = new Scanner(System.in).next();
                             if (action.charAt(0) == 'A') throw new Exception();
@@ -224,7 +225,7 @@ public class GCPrinter implements CloudPrintConsts {
 
                 // 3.- Set the job status to "DONE":
                 parameters = new HashMap<>();
-                parameters.put("jobid",job.getJobId());
+                parameters.put("jobid",job.id);
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"DONE\"},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
@@ -235,7 +236,7 @@ public class GCPrinter implements CloudPrintConsts {
 
                 // 3.- Set the job status to "DONE":
                 parameters = new HashMap<>();
-                parameters.put("jobid",job.getJobId());
+                parameters.put("jobid",job.id);
                 parameters.put("semantic_state_diff","{\"state\": {\"type\": \"ABORTED\",\"user_action_cause\": {\"action_code\": \"CANCELLED\"}},\n\"pages_printed\": "+ i +"}");
 
                 content = new UrlEncodedContent(parameters);
