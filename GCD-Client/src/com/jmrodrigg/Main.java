@@ -60,13 +60,13 @@ public class Main {
 
                             PrinterDescription printer_description = requestCapabilities(printers.get(printernum).getPrinterId());
                             if (printer_description != null) {
-                                System.out.println(printer_description.supported_content_type.toString());
-                                System.out.println(printer_description.media_size.toString());
-                                System.out.println(printer_description.marker.toString());
-                                System.out.println(printer_description.color.toString());
-                                System.out.println(printer_description.copies.toString());
-                                System.out.println(printer_description.cover.toString());
-                                System.out.println(printer_description.margins.toString());
+                                if(printer_description.supported_content_type != null) System.out.println(printer_description.supported_content_type.toString());
+                                if(printer_description.media_size != null) System.out.println(printer_description.media_size.toString());
+                                if(printer_description.marker != null) System.out.println(printer_description.marker.toString());
+                                if(printer_description.color != null) System.out.println(printer_description.color.toString());
+                                if(printer_description.copies != null) System.out.println(printer_description.copies.toString());
+                                if(printer_description.cover != null) System.out.println(printer_description.cover.toString());
+                                if(printer_description.margins != null) System.out.println(printer_description.margins.toString());
                             }
                         } else if (action == 3) {
                             System.out.print("Select a printer to submit the job to: ");
