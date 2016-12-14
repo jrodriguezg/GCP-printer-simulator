@@ -1,8 +1,10 @@
 package com.jmrodrigg;
 
 import com.google.api.client.http.*;
+import com.google.gson.Gson;
 import com.google.gson.internal.Pair;
-import com.jmrodrigg.model.CDD.*;
+import com.jmrodrigg.model.CDD.MediaSize;
+import com.jmrodrigg.model.CJT.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -67,7 +69,7 @@ public class GCPClient implements CloudPrintConsts {
             }
         }
 
-        // Fallback - return first media size:
+        // Priority 3 - return default media size:
         for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
             if (opt.is_default) {
                 width = opt.width_microns;
@@ -77,8 +79,10 @@ public class GCPClient implements CloudPrintConsts {
             }
         }
 
-        // ideally unreachable:
-        return null;
+        // Fallback - return the first media size:
+        width = printer.getPrinterDescription().media_size.option.get(0).width_microns;
+        height = printer.getPrinterDescription().media_size.option.get(0).height_microns;
+        return new Pair<>(width,height);
     }
 
     public static Pair<Integer,String> submit(String access_token, Printer printer, String jobType) throws IOException, URISyntaxException {
@@ -87,7 +91,7 @@ public class GCPClient implements CloudPrintConsts {
         headers.put("X-CloudPrint-Proxy","");
         headers.setAuthorization("OAuth " + access_token);
 
-        String ticket;
+        PrintTicket printTicket;
 
         if (jobType.equals("J")) {
 
@@ -125,38 +129,44 @@ public class GCPClient implements CloudPrintConsts {
                 is_continuous_feed = false;
             }
 
-            ticket = "{" +
-                        "\"version\": " + "\"1.0\"," +
-                        "\"print\": {" +
-                            "\"media_size\": {" +
-                                "\"width_microns\": " + scaled_width + "," +
-                                "\"height_microns\": " + scaled_height + "," +
-                                "\"is_continuous_feed\": " + is_continuous_feed + "," +
-                            "}," +
-                            "\"dpi\": {" +
-                                "\"horizontal_dpi\": " + resolution + "," +
-                                "\"vertical_dpi\": " + resolution +
-                            "}" +
-                        "}" +
-                    "}";
+            com.jmrodrigg.model.CJT.MediaSize mediaSize = new com.jmrodrigg.model.CJT.MediaSize();
+            mediaSize.height_microns = scaled_height;
+            mediaSize.width_microns = scaled_width;
+            mediaSize.is_continuous_feed = is_continuous_feed;
+
+            com.jmrodrigg.model.CJT.Dpi dpi = new com.jmrodrigg.model.CJT.Dpi();
+            dpi.horizontal_dpi = 300;
+            dpi.vertical_dpi = 300;
+
+            printTicket = new PrintTicket.PrintTicketBuilder()
+                    .dpi(dpi)
+                    .mediaSize(mediaSize)
+                    .build();
         } else {
-            ticket = "{" +
-                        "\"version\": " + "\"1.0\"," +
-                        "\"print\": {" +
-                            "\"media_size\": {" +
-                                "\"width_microns\": 609600," +  //TODO adjust paper width to media loaded in printer.
-                                "\"height_microns\": 220000," + //TODO adjust paper length to document needs.
-                                "\"is_continuous_feed\": true" +
-                            "}" +
-                        "}" +
-                    "}";
+            com.jmrodrigg.model.CJT.MediaSize mediaSize = new com.jmrodrigg.model.CJT.MediaSize();
+            mediaSize.height_microns = 609600;
+            mediaSize.width_microns = 220000;
+            mediaSize.is_continuous_feed = true;
+
+            printTicket = new PrintTicket.PrintTicketBuilder()
+                    .mediaSize(mediaSize)
+                    .build();
+            // TODO Work In Progress
         }
+
+        CloudJobTicket jobTicket = new CloudJobTicket.CloudJobTicketBuilder()
+                .version("1.0")
+                .printTicket(printTicket)
+                .build();
+
+        Gson g = new Gson();
+        String jsonTicket = g.toJson(jobTicket);
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("printerid",printer.getPrinterId());
         parameters.put("title","CloudPrint Job");
 
-        parameters.put("ticket",ticket);
+        parameters.put("ticket",jsonTicket);
 
         MultipartContent content = new MultipartContent().setMediaType(
                 new HttpMediaType("multipart/form-data")

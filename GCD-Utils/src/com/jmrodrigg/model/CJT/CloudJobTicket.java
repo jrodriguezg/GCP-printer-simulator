@@ -5,8 +5,31 @@ package com.jmrodrigg.model.CJT;
  * Date: 8/4/16
  */
 public class CloudJobTicket {
-    String version;
-    PrintTicket print;
+    public String version;
+    public PrintTicket print;
 
-    // TODO
+    private CloudJobTicket(CloudJobTicketBuilder builder) {
+        this.version = builder.version;
+        this.print = builder.print;
+    }
+
+    public static class CloudJobTicketBuilder {
+        private String version;
+        private PrintTicket print;
+
+        public CloudJobTicketBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public CloudJobTicketBuilder printTicket(PrintTicket print) {
+            this.print = print;
+            return this;
+        }
+
+        public CloudJobTicket build() {
+            return new CloudJobTicket(this);
+        }
+    }
+
 }

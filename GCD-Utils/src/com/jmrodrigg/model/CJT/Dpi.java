@@ -6,13 +6,13 @@ package com.jmrodrigg.model.CJT;
  */
 public class Dpi {
 
-    public final Integer horizontal_dpi                 = null;
-    public final Integer vertical_dpi                   = null;
-    public final String vendor_id                       = null;
+    public Integer horizontal_dpi                 = null;
+    public Integer vertical_dpi                   = null;
+    public String vendor_id                       = null;
 
     @Override
     public String toString() {
-        return "Dpi{" +
+        return "dpi{" +
                 "horizontal_dpi=" + horizontal_dpi +
                 ", vertical_dpi=" + vertical_dpi +
                 ", vendor_id='" + vendor_id + '\'' +
