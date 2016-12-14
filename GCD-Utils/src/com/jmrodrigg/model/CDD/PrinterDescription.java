@@ -7,16 +7,16 @@ import java.util.List;
  * Date: 7/29/16
  */
 public class PrinterDescription {
-    private final List<SupportedContentType> supported_content_type;
-    private final PrintingSpeed printing_speed;
-    private final List<Marker> marker;
-    private final List<Cover> cover;
-    private final List<MediaPath> media_path;
-    private final List<VendorCapability> vendor_capability;
-    private final Color color;
-    private final Copies copies;
-    private final Margins margins;
-    private final MediaSize media_size;
+    public final List<SupportedContentType> supported_content_type;
+    public final PrintingSpeed printing_speed;
+    public final List<Marker> marker;
+    public final List<Cover> cover;
+    public final List<MediaPath> media_path;
+    public final List<VendorCapability> vendor_capability;
+    public final Color color;
+    public final Copies copies;
+    public final Margins margins;
+    public final MediaSize media_size;
 
     private PrinterDescription(PrinterDescriptionBuilder builder) {
         this.supported_content_type = builder.supported_content_type;

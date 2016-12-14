@@ -2,7 +2,6 @@ package com.jmrodrigg.model.CDD;
 
 import com.jmrodrigg.model.Utils.LocalizedString;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -1562,14 +1561,14 @@ public class MediaSize {
     }
 
     public class Option {
-        public final Name name                                                  = Name.CUSTOM; /* default = CUSTOM */
-        public final Integer width_microns                                      = null;
-        public final Integer height_microns                                     = null;
-        public final boolean is_continuous_feed                                 = false; /* default = FALSE */
-        public final boolean is_default                                         = false; /* default = FALSE */
-        public final String custom_display_name                                 = null;
-        public final String vendor_id                                           = null;
-        public final List<LocalizedString> custom_display_name_localized        = null;
+        public Name name                                                  = Name.CUSTOM; /* default = CUSTOM */
+        public Integer width_microns                                      = null;
+        public Integer height_microns                                     = null;
+        public boolean is_continuous_feed                                 = false; /* default = FALSE */
+        public boolean is_default                                         = false; /* default = FALSE */
+        public String custom_display_name                                 = null;
+        public String vendor_id                                           = null;
+        public List<LocalizedString> custom_display_name_localized        = null;
 
         @Override
         public String toString() {

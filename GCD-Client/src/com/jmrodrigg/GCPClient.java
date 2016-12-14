@@ -2,6 +2,7 @@ package com.jmrodrigg;
 
 import com.google.api.client.http.*;
 import com.google.gson.internal.Pair;
+import com.jmrodrigg.model.CDD.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -44,7 +45,43 @@ public class GCPClient implements CloudPrintConsts {
         return new Pair<>(response.getStatusCode(),response.parseAsString());
     }
 
-    public static Pair<Integer,String> submit(String access_token, String printerid, String jobType) throws IOException, URISyntaxException {
+    private static Pair<Integer,Integer> findMediaSize(Printer printer) {
+        Integer width, height;
+        // Priority 1 - Find Roll media size:
+        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+            if (opt.is_continuous_feed) {
+                width = opt.width_microns;
+                height = opt.height_microns;
+
+                return new Pair<>(width,height);
+            }
+        }
+
+        // Priority 2 - Find A4 media size:
+        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+            if (opt.name == MediaSize.Name.ISO_A4) {
+                width = opt.width_microns;
+                height = opt.height_microns;
+
+                return new Pair<>(width,height);
+            }
+        }
+
+        // Fallback - return first media size:
+        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+            if (opt.is_default) {
+                width = opt.width_microns;
+                height = opt.height_microns;
+
+                return new Pair<>(width,height);
+            }
+        }
+
+        // ideally unreachable:
+        return null;
+    }
+
+    public static Pair<Integer,String> submit(String access_token, Printer printer, String jobType) throws IOException, URISyntaxException {
 
         HttpHeaders headers = new HttpHeaders();
         headers.put("X-CloudPrint-Proxy","");
@@ -53,25 +90,48 @@ public class GCPClient implements CloudPrintConsts {
         String ticket;
 
         if (jobType.equals("J")) {
-            // Open the bitmap and adjust paper size to match roll width:
-            int resolution = 300;
-            int roll_width = 609600;
 
+            int resolution = 300;
+            int scaled_width;
+            int scaled_height;
+            boolean is_continuous_feed;
+
+            // Open the bitmap and adjust paper size to match roll width:
             BufferedImage picture = ImageIO.read(new File((Main.class.getClassLoader().getResource("samples/Barcelona.jpg")).toURI()));
             int height_microns = (int) ((picture.getHeight() * 25.4f * 1000) / resolution);
             int width_microns = (int) ((picture.getWidth() * 25.4f * 1000) / resolution);
 
-            float scale = (float) roll_width / width_microns;
+            // Search a roll media size:
+            Pair<Integer,Integer> jobMediaSize = findMediaSize(printer);
 
-            int scaled_height = (int) (scale * height_microns);
+            if (jobMediaSize.first == null) {
+                scaled_height = jobMediaSize.second;
+
+                float scale = (float) scaled_height / width_microns;
+                scaled_width = (int) (scale * height_microns);
+
+                is_continuous_feed = true;
+            } else if (jobMediaSize.second == null) {
+                scaled_width = jobMediaSize.first;
+
+                float scale = (float) scaled_width / width_microns;
+                scaled_height = (int) (scale * height_microns);
+
+                is_continuous_feed = true;
+            } else {
+                // Standard size:
+                scaled_width = jobMediaSize.first;
+                scaled_height = jobMediaSize.second;
+                is_continuous_feed = false;
+            }
 
             ticket = "{" +
                         "\"version\": " + "\"1.0\"," +
                         "\"print\": {" +
                             "\"media_size\": {" +
-                                "\"width_microns\": " + roll_width + "," +
+                                "\"width_microns\": " + scaled_width + "," +
                                 "\"height_microns\": " + scaled_height + "," +
-                                "\"is_continuous_feed\": true" +
+                                "\"is_continuous_feed\": " + is_continuous_feed + "," +
                             "}," +
                             "\"dpi\": {" +
                                 "\"horizontal_dpi\": " + resolution + "," +
@@ -93,7 +153,7 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("printerid",printerid);
+        parameters.put("printerid",printer.getPrinterId());
         parameters.put("title","CloudPrint Job");
 
         parameters.put("ticket",ticket);

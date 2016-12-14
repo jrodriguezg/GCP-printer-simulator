@@ -106,7 +106,7 @@ public class Main {
 
     private static boolean submitJob(String jobType) {
         try {
-            Pair<Integer, String> response = submit(oAuth.getAccessToken(), printer.getPrinterId(), jobType);
+            Pair<Integer, String> response = submit(oAuth.getAccessToken(), printer, jobType);
 
             JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
             return object.get("success").getAsBoolean();
