@@ -60,7 +60,7 @@ public class Main {
                             printernum = Integer.parseInt(new Scanner(System.in).next());
                             System.out.println("");
 
-                            if ((printernum > 0) && (printernum < printers.size()))
+                            if ((printernum > 0) && (printernum <= printers.size()))
                                 printer = printers.get(printernum - 1);
 
                         } while (printer == null);

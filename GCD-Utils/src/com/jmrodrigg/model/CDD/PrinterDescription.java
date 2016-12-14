@@ -7,18 +7,16 @@ import java.util.List;
  * Date: 7/29/16
  */
 public class PrinterDescription {
-    public final List<SupportedContentType> supported_content_type;
-    public final PrintingSpeed printing_speed;
-
-    public final List<Marker> marker;
-    public final List<Cover> cover;
-    public final List<MediaPath> media_path;
-    public final List<VendorCapability> vendor_capability;
-    public final Color color;
-    public final Copies copies;
-    public final Margins margins;
-    public final MediaSize media_size;
-
+    private final List<SupportedContentType> supported_content_type;
+    private final PrintingSpeed printing_speed;
+    private final List<Marker> marker;
+    private final List<Cover> cover;
+    private final List<MediaPath> media_path;
+    private final List<VendorCapability> vendor_capability;
+    private final Color color;
+    private final Copies copies;
+    private final Margins margins;
+    private final MediaSize media_size;
 
     private PrinterDescription(PrinterDescriptionBuilder builder) {
         this.supported_content_type = builder.supported_content_type;
@@ -102,15 +100,19 @@ public class PrinterDescription {
 
     @Override
     public String toString() {
-        return supported_content_type.toString() + "\n" +
-                printing_speed.toString() + "\n" +
-                marker.toString() + "\n" +
-                cover.toString() + "\n" +
-                media_path.toString() + "\n" +
-                vendor_capability.toString() + "\n" +
-                color.toString() + "\n" +
-                copies.toString() + "\n" +
-                margins.toString() + "\n" +
-                media_size.toString() + "\n";
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if(supported_content_type != null) stringBuilder.append(supported_content_type.toString() + "\n");
+        if(printing_speed != null) stringBuilder.append(printing_speed.toString() + "\n");
+        if(media_size != null) stringBuilder.append(media_size.toString() + "\n");
+        if(marker != null) stringBuilder.append(marker.toString() + "\n");
+        if(cover != null) stringBuilder.append(cover.toString() + "\n");
+        if(media_path != null) stringBuilder.append(media_path.toString() + "\n");
+        if(vendor_capability != null) stringBuilder.append(vendor_capability.toString() + "\n");
+        if(color != null) stringBuilder.append(color.toString() + "\n");
+        if(copies != null) stringBuilder.append(copies.toString() + "\n");
+        if(margins != null) stringBuilder.append(margins.toString() + "\n");
+
+        return stringBuilder.toString();
     }
 }

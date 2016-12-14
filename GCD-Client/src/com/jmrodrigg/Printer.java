@@ -32,35 +32,39 @@ public class Printer {
 
     @Override
     public String toString() {
-        return "[" + status + "] - " + displayName + " {" + printerid + "}" +
-                printerDescription.toString();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[" + status + "] - " + displayName + " {" + printerid + "}");
+
+        if (printerDescription != null) stringBuilder.append("\n" + printerDescription.toString());
+
+        return stringBuilder.toString();
     }
 
     public void setPrinterDescription(JsonObject printerDescription) {
         Gson gson = new Gson();
-        // Supported content types:
+
         List<SupportedContentType> supported_content_types = gson.fromJson(printerDescription.get("supported_content_type"), new TypeToken<List<SupportedContentType>>(){}.getType());
-        // Media Size:
-        MediaSize media_size = gson.fromJson(printerDescription.get("media_size"), MediaSize.class);
-        // Marker:
+        PrintingSpeed printing_speed = gson.fromJson(printerDescription.get("printing_speed"), PrintingSpeed.class);
         List<Marker> marker = gson.fromJson(printerDescription.get("marker"), new TypeToken<List<Marker>>(){}.getType());
-        // Color:
-        Color color = gson.fromJson(printerDescription.get("color"), Color.class);
-        // Copies:
-        Copies copies = gson.fromJson(printerDescription.get("copies"), Copies.class);
-        // Cover:
         List<Cover> covers = gson.fromJson(printerDescription.get("cover"), new TypeToken<List<Cover>>(){}.getType());
-        // Margins:
+        List<MediaPath> media_paths = gson.fromJson(printerDescription.get("media_path"), new TypeToken<List<MediaPath>>(){}.getType());
+        Color color = gson.fromJson(printerDescription.get("color"), Color.class);
+        List<VendorCapability> vendor_capabilities = gson.fromJson(printerDescription.get("vendor_capability"), new TypeToken<List<VendorCapability>>(){}.getType());
+        Copies copies = gson.fromJson(printerDescription.get("copies"), Copies.class);
         Margins margins = gson.fromJson(printerDescription.get("margins"), Margins.class);
+        MediaSize media_size = gson.fromJson(printerDescription.get("media_size"), MediaSize.class);
 
         this.printerDescription = new PrinterDescription.PrinterDescriptionBuilder()
                 .supportedContentTypes(supported_content_types)
-                .mediaSizes(media_size)
+                .printingSpeed(printing_speed)
                 .markers(marker)
-                .colors(color)
-                .copies(copies)
                 .covers(covers)
+                .mediaPaths(media_paths)
+                .colors(color)
+                .vendorCapabilities(vendor_capabilities)
+                .copies(copies)
                 .margins(margins)
+                .mediaSizes(media_size)
                 .build();
     }
 
