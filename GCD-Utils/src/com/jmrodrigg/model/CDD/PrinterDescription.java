@@ -99,4 +99,18 @@ public class PrinterDescription {
             return new PrinterDescription(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return supported_content_type.toString() + "\n" +
+                printing_speed.toString() + "\n" +
+                marker.toString() + "\n" +
+                cover.toString() + "\n" +
+                media_path.toString() + "\n" +
+                vendor_capability.toString() + "\n" +
+                color.toString() + "\n" +
+                copies.toString() + "\n" +
+                margins.toString() + "\n" +
+                media_size.toString() + "\n";
+    }
 }
