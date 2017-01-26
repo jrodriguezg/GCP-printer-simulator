@@ -6,4 +6,11 @@ package com.jmrodrigg.model.CDD;
  */
 public class MediaPath {
     public final String vendor_id   = null;     /* Required */
+
+    @Override
+    public String toString() {
+        return "MediaPath{" +
+                "vendor_id='" + vendor_id + '\'' +
+                '}';
+    }
 }
