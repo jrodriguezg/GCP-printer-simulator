@@ -144,8 +144,8 @@ public class GCPClient implements CloudPrintConsts {
                     .build();
         } else {
             com.jmrodrigg.model.CJT.MediaSize mediaSize = new com.jmrodrigg.model.CJT.MediaSize();
-            mediaSize.height_microns = 609600;
-            mediaSize.width_microns = 220000;
+            mediaSize.width_microns = 914400; // 36-in roll.
+            mediaSize.height_microns = 220000;
             mediaSize.is_continuous_feed = true;
 
             printTicket = new PrintTicket.PrintTicketBuilder()
