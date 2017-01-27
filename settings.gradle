@@ -6,3 +6,5 @@ include ':GCD-Printer'
 
 include ':GCD-Client'
 //project(':GCD-Client').projectDir = new File(rootDir, 'GCD-Client')
+include 'Privet-Client'
+
