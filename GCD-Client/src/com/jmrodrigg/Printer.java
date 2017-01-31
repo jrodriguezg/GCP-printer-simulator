@@ -26,6 +26,13 @@ public class Printer {
         this.printerDescription = null;
     }
 
+    public Printer(JsonObject object) {
+        this.printerid = object.getAsJsonObject().get("id").getAsString();
+        this.status = object.getAsJsonObject().get("connectionStatus").getAsString();
+        this.displayName = object.getAsJsonObject().get("displayName").getAsString();
+        this.printerDescription = null;
+    }
+
     public String getPrinterId() {
         return printerid;
     }

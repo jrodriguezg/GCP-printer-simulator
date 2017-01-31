@@ -11,6 +11,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -45,7 +46,7 @@ public class OAuth {
         return this.user_credentials.getRefreshToken();
     }
 
-    public boolean authorize(String user) {
+    public boolean authorize(String user) throws SocketTimeoutException {
 
         try {
             final String OAUTH_URL = "https://accounts.google.com/o/oauth2/token";
@@ -77,6 +78,8 @@ public class OAuth {
                 return user_credentials.refreshToken();
             } else return true;
 
+        } catch (SocketTimeoutException ex) {
+            throw ex;
         } catch (IOException ex) {
             return false;
         }
