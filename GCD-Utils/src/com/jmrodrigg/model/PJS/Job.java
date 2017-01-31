@@ -1,6 +1,6 @@
 package com.jmrodrigg.model.PJS;
 
-import java.util.Date;
+import com.google.gson.JsonObject;
 import java.util.List;
 
 /**
@@ -9,36 +9,57 @@ import java.util.List;
  */
 public class Job {
 
-    public final String id                          = null;
-    public final String printerid                   = null;
-    public final String printerName                 = null;
-    public final String title                       = null;
-    public final String contentType                 = null;
-    public final String fileUrl                     = null;
-    public final String rasterUrl                   = null;
+    public String id                          = null;
+    public String printerName                 = null;
+    public String title                       = null;
+    public String contentType                 = null;
+    public String fileUrl                     = null;
+    public String rasterUrl                   = null;
     @Deprecated
-    public final String ticketUrl                   = null;
-    public final Long createTime                    = null;
-    public final Long updateTime                    = null;
-    public final PrintJobState semanticState        = null;
-    public final PrintJobUIState uiState            = null;
+    public String ticketUrl                   = null;
+    public Long createTime                    = null;
+    public Long updateTime                    = null;
+    public PrintJobState semanticState        = null;
+    public PrintJobUIState uiState            = null;
     @Deprecated
-    public final LegacyJobStatus status             = null;
+    public LegacyJobStatus status             = null;
     @Deprecated
-    public final String errorCode                   = null;
+    public String errorCode                   = null;
     @Deprecated
-    public final String message                     = null;
-    public final List<String> tags                  = null;
-    public final String ownerId                     = null;
-    public final Integer numberOfPages              = null;
-    public final String printerType                 = null;
-    public final String driveUrl                    = null;
+    public String message                     = null;
+    public List<String> tags                  = null;
+    public String ownerId                     = null;
+    public Integer numberOfPages              = null;
+    public String printerType                 = null;
+    public String driveUrl                    = null;
+
+    public Job(JsonObject object) {
+        System.out.println("new");
+
+        this.id = object.get("id").getAsString();
+        // TODO printerId.
+        this.printerName = object.get("printerName").getAsString();
+        this.title = object.get("title").getAsString();
+        this.contentType = object.get("contentType").getAsString();
+        this.fileUrl = object.get("fileUrl").getAsString();
+        this.rasterUrl = object.get("rasterUrl").getAsString();
+
+        this.ticketUrl = object.get("ticketUrl").getAsString();
+        this.createTime = object.get("createTime").getAsLong();
+        this.updateTime = object.get("updateTime").getAsLong();
+        // TODO semanticState.
+        // TODO uiState.
+
+        // TODO tags.
+        this.ownerId = object.get("ownerId").getAsString();
+        this.numberOfPages = object.get("numberOfPages").getAsInt();
+        this.printerType = object.get("printerType").getAsString();
+    }
 
     @Override
     public String toString() {
         return "Job{" +
                 "id='" + id + '\'' +
-                ", printerid='" + printerid + '\'' +
                 ", printerName='" + printerName + '\'' +
                 ", title='" + title + '\'' +
                 ", contentType='" + contentType + '\'' +

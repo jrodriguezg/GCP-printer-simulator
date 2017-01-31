@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.Pair;
+import com.jmrodrigg.model.PJS.Job;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -94,9 +95,9 @@ public class Main {
         return false;
     }
 
-    private static List<PrintJob> getJobs() {
+    private static List<Job> getJobs() {
         Pair<Integer,String> response;
-        List<PrintJob> jobs = new ArrayList<>();
+        List<Job> jobs = new ArrayList<>();
 
         try {
             response = fetch(oAuth.getAccessToken(), printerid);
@@ -116,7 +117,7 @@ public class Main {
                 System.out.println("--------------");
 
                 for (JsonElement obj : jobsJson) {
-                    jobs.add(new PrintJob(obj));
+                    jobs.add(new Job(obj.getAsJsonObject()));
                 }
 
                 return jobs;
@@ -195,10 +196,10 @@ public class Main {
                 case 3:
                     if (printerid == null) System.out.println("printerid is null. Have you registered the printer?");
                     else {
-                        List<PrintJob> jobs = getJobs();
+                        List<Job> jobs = getJobs();
                         if (jobs.size() > 0) {
                             int num = 1;
-                            for (PrintJob job : jobs) System.out.println("#" + (num++) + "-->" + job.toString());
+                            for (Job job : jobs) System.out.println("#" + (num++) + "-->" + job.toString());
 
                             System.out.print("Select job number to print one or 0 cancel the operation: ");
                             int jobId = Integer.parseInt(new Scanner(System.in).next());
@@ -206,7 +207,7 @@ public class Main {
                             System.out.println("");
 
                             if (jobId > 0) {
-                                PrintJob job = jobs.get(jobId-1);
+                                Job job = jobs.get(jobId-1);
 
                                 System.out.print("(P)DF or PWG-(R)aster: ");
                                 String format = new Scanner(System.in).next();
@@ -215,7 +216,7 @@ public class Main {
 
                                 if (format.equals("P") || format.equals("R")) {
                                     try {
-                                        getJobTicket(oAuth.getAccessToken(), job.getJobId());
+                                        getJobTicket(oAuth.getAccessToken(), job.id);
                                         downloadFile(oAuth.getAccessToken(), job, format.equals("R"));
                                         printJob(oAuth.getAccessToken(), job);
 

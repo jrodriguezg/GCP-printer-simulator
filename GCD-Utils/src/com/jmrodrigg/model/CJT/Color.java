@@ -8,8 +8,8 @@ import com.jmrodrigg.model.Utils.PrintingColor;
  */
 public class Color {
 
-    public final String vendor_id                                           = null;
-    public final PrintingColor.Type type                                    = null;
+    public String vendor_id                                           = null;
+    public PrintingColor.Type type                                    = null;
 
     @Override
     public String toString() {
