@@ -2,6 +2,7 @@ package com.jmrodrigg;
 
 import com.google.gson.*;
 import com.google.gson.internal.Pair;
+import com.jmrodrigg.tasks.utils.PrinterStatusThread;
 import org.apache.http.HttpStatus;
 
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static com.jmrodrigg.GCPClient.printer;
 import static com.jmrodrigg.GCPClient.search;
 import static com.jmrodrigg.GCPClient.submit;
 
@@ -23,6 +23,7 @@ public class Main {
     private static OAuth oAuth = new OAuth(Main.class.getClassLoader().getResourceAsStream("keys/api_key.json"));
 
     private static Printer printer = null;
+    private static PrinterStatusThread printerStatusThread = null;
 
     public static void main(String[] args) {
         List<Printer> printers;
@@ -57,18 +58,30 @@ public class Main {
                         case 1:
 
                             printers = searchPrinters();
-                            for (int i = 0; i < printers.size(); i++)
-                                System.out.println("#" + (i + 1) + " -- " + printers.get(i).toString());
 
-                            do {
-                                System.out.print("Select a printer: ");
-                                printernum = Integer.parseInt(new Scanner(System.in).next());
-                                System.out.println("");
+                            if (!printers.isEmpty()) {
+                                for (int i = 0; i < printers.size(); i++)
+                                    System.out.println("#" + (i + 1) + " -- " + printers.get(i).toString());
 
-                                if ((printernum > 0) && (printernum <= printers.size()))
-                                    printer = printers.get(printernum - 1);
+                                do {
+                                    System.out.print("Select a printer: ");
+                                    printernum = Integer.parseInt(new Scanner(System.in).next());
+                                    System.out.println("");
 
-                            } while (printer == null);
+                                    if ((printernum > 0) && (printernum <= printers.size()))
+                                        printer = printers.get(printernum - 1);
+
+                                } while (printer == null);
+
+                                // Once the printer is selected. We start tracking its capabilities:
+                                printerStatusThread = new PrinterStatusThread(printer.getPrinterId(), oAuth.getAccessToken());
+                                printerStatusThread.addListener(thread -> {
+                                    System.out.println("Error: Connection with selected printer was lost.");
+                                    System.exit(0);
+                                });
+                                printerStatusThread.start();
+
+                            } else System.out.println("No Printers retrieved. ");
 
                             break;
                         case 2:
@@ -76,13 +89,13 @@ public class Main {
 
                             // May be not necessary, but just in case.
                             if (printer == null) {
-                                System.out.print("First you need to select a printer.");
+                                System.out.println("First you need to select a printer.");
                                 break;
                             }
 
                             if (action == 2) {
-                                requestCapabilities();
-                                System.out.println(printer.toString());
+                                if (requestCapabilities()) System.out.println(printer.toString());
+                                else System.out.println("Error - No valid capabilities.");
                             } else {
                                 System.out.print("Which type of job: (P)DF or (J)PEG? ");
                                 String job_type = new Scanner(System.in).next();
@@ -97,7 +110,7 @@ public class Main {
                             break;
 
                         case 0:
-                            System.out.println("Bye-Bye =)");
+                            // Nothing to do.
                             break;
 
                         default:
@@ -106,13 +119,15 @@ public class Main {
                     System.out.println("");
                 } while (action != 0);
 
-            } else System.out.print("Error: Unauthorized.");
+            } else System.out.println("Error: Unauthorized.");
         } catch (SocketTimeoutException ex) {
-            System.out.print("Error: Timeout.");
+            System.out.println("Error: Timeout.");
         }
+
+        exit();
     }
 
-    private static boolean submitJob(String jobType) {
+    private static boolean submitJob(String jobType) throws SocketTimeoutException {
         boolean success = false;
         try {
             Pair<Integer, String> response = submit(oAuth.getAccessToken(), printer, jobType);
@@ -126,6 +141,8 @@ public class Main {
                 }
             } else System.out.println("Error" + response.first + " while submitting job --> " + response.second);
 
+        } catch (SocketTimeoutException ex) {
+            throw ex;
         } catch (Exception ex) {
             System.out.println("IOException:");
             ex.printStackTrace();
@@ -134,7 +151,7 @@ public class Main {
         return success;
     }
 
-    private static List<Printer> searchPrinters() {
+    private static List<Printer> searchPrinters() throws SocketTimeoutException {
         List<Printer> printers = new ArrayList<>();
 
         try {
@@ -153,6 +170,8 @@ public class Main {
 
             } else System.out.println("Error" + response.first + " while retrieving printers list --> " + response.second);
 
+        } catch (SocketTimeoutException ex) {
+            throw ex;
         } catch (IOException ex) {
             System.out.println("IOException:");
             ex.printStackTrace();
@@ -161,31 +180,25 @@ public class Main {
         return printers;
     }
 
-    private static boolean requestCapabilities() {
-        boolean success = false;
+    private static boolean requestCapabilities() throws SocketTimeoutException {
+        JsonObject object = printerStatusThread.getPrinterCapabilties();
 
-        try {
-            Pair<Integer, String> response = printer(oAuth.getAccessToken(), printer.getPrinterId());
-            JsonObject object = new JsonParser().parse(response.second).getAsJsonObject();
+        if (object != null) {
+            printer.setPrinterDescription(object.getAsJsonObject("printer"));
+            return true;
+        } else return false;
+    }
 
-            if (response.first == HttpStatus.SC_OK) {
-                if (object.has("success")) {
-                    JsonObject retCapabilities = object.getAsJsonArray("printers").get(0).getAsJsonObject().getAsJsonObject("capabilities");
-                    printer.setPrinterDescription(retCapabilities.getAsJsonObject("printer"));
+    private static void exit() {
+        // Status Monitor safe stop:
+        System.out.print("Stopping printer status monitor...");
+        if ((printerStatusThread != null) && printerStatusThread.isAlive()) {
+            printerStatusThread.interrupt();
+            System.out.println(" Done.");
+        } else System.out.println("Already stopped.");
 
-                    success = true;
-                } else {
-                    if (object.has("error")) System.out.println(response.first + " - Error while requesting printer capabilities --> " + object.get("error").getAsString());
-                    else System.out.println(response.first + " - Unexpected error while retrieving printer capabilities.");
-                }
+        System.out.println("Bye-Bye =)");
 
-            } else System.out.println("Error" + response.first + "retrieving printer capabilities --> " + response.second);
-
-        } catch (IOException ex) {
-            System.out.println("IOException:");
-            ex.printStackTrace();
-        }
-
-        return success;
+        System.exit(0);
     }
 }
