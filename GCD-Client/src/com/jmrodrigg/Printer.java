@@ -3,8 +3,6 @@ package com.jmrodrigg;
 import com.google.gson.JsonObject;
 import com.jmrodrigg.model.CDD.*;
 
-import java.util.List;
-
 /**
  * Author: jrodriguezg
  * Date: 7/18/16
