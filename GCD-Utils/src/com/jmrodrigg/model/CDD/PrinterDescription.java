@@ -1,5 +1,9 @@
 package com.jmrodrigg.model.CDD;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.List;
 
 /**
@@ -7,8 +11,9 @@ import java.util.List;
  * Date: 7/29/16
  */
 public class PrinterDescription {
-    public final List<SupportedContentType> supported_content_type;
+    public final List<SupportedContentType> supportedContentTypes;
     public final PrintingSpeed printing_speed;
+    public final MediaSize mediaSize;
     public final List<Marker> marker;
     public final List<Cover> cover;
     public final List<MediaPath> media_path;
@@ -16,12 +21,26 @@ public class PrinterDescription {
     public final Color color;
     public final Copies copies;
     public final Margins margins;
-    public final MediaSize media_size;
+
+    public PrinterDescription(JsonObject printerDescription) {
+        Gson gson = new Gson();
+
+        supportedContentTypes = gson.fromJson(printerDescription.get("supportedContentTypes"), new TypeToken<List<SupportedContentType>>(){}.getType());
+        printing_speed = gson.fromJson(printerDescription.get("printing_speed"), PrintingSpeed.class);
+        marker = gson.fromJson(printerDescription.get("marker"), new TypeToken<List<Marker>>(){}.getType());
+        cover = gson.fromJson(printerDescription.get("cover"), new TypeToken<List<Cover>>(){}.getType());
+        media_path = gson.fromJson(printerDescription.get("media_path"), new TypeToken<List<MediaPath>>(){}.getType());
+        color = gson.fromJson(printerDescription.get("color"), Color.class);
+        vendor_capability = gson.fromJson(printerDescription.get("vendor_capability"), new TypeToken<List<VendorCapability>>(){}.getType());
+        copies = gson.fromJson(printerDescription.get("copies"), Copies.class);
+        margins = gson.fromJson(printerDescription.get("margins"), Margins.class);
+        mediaSize = gson.fromJson(printerDescription.get("mediaSize"), MediaSize.class);
+    }
 
     private PrinterDescription(PrinterDescriptionBuilder builder) {
-        this.supported_content_type = builder.supported_content_type;
+        this.supportedContentTypes = builder.supported_content_type;
         this.printing_speed = builder.printing_speed;
-        this.media_size = builder.media_size;
+        this.mediaSize = builder.media_size;
         this.marker = builder.marker_list;
         this.cover = builder.cover_list;
         this.media_path = builder.media_path_list;
@@ -102,16 +121,16 @@ public class PrinterDescription {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
 
-        if(supported_content_type != null) stringBuilder.append(supported_content_type.toString() + "\n");
-        if(printing_speed != null) stringBuilder.append(printing_speed.toString() + "\n");
-        if(media_size != null) stringBuilder.append(media_size.toString() + "\n");
-        if(marker != null) stringBuilder.append(marker.toString() + "\n");
-        if(cover != null) stringBuilder.append(cover.toString() + "\n");
-        if(media_path != null) stringBuilder.append(media_path.toString() + "\n");
-        if(vendor_capability != null) stringBuilder.append(vendor_capability.toString() + "\n");
-        if(color != null) stringBuilder.append(color.toString() + "\n");
-        if(copies != null) stringBuilder.append(copies.toString() + "\n");
-        if(margins != null) stringBuilder.append(margins.toString() + "\n");
+        if(supportedContentTypes != null) stringBuilder.append(supportedContentTypes.toString()).append("\n");
+        if(printing_speed != null) stringBuilder.append(printing_speed.toString()).append("\n");
+        if(mediaSize != null) stringBuilder.append(mediaSize.toString()).append("\n");
+        if(marker != null) stringBuilder.append(marker.toString()).append("\n");
+        if(cover != null) stringBuilder.append(cover.toString()).append("\n");
+        if(media_path != null) stringBuilder.append(media_path.toString()).append("\n");
+        if(vendor_capability != null) stringBuilder.append(vendor_capability.toString()).append("\n");
+        if(color != null) stringBuilder.append(color.toString()).append("\n");
+        if(copies != null) stringBuilder.append(copies.toString()).append("\n");
+        if(margins != null) stringBuilder.append(margins.toString()).append("\n");
 
         return stringBuilder.toString();
     }

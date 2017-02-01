@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.internal.Pair;
 import com.jmrodrigg.model.CDD.MediaSize;
 import com.jmrodrigg.model.CJT.*;
+import com.jmrodrigg.model.Utils.PrintingColor;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -50,7 +51,7 @@ public class GCPClient implements CloudPrintConsts {
     private static Pair<Integer,Integer> findMediaSize(Printer printer) {
         Integer width, height;
         // Priority 1 - Find Roll media size:
-        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+        for (MediaSize.Option opt : printer.getPrinterDescription().mediaSize.option) {
             if (opt.is_continuous_feed) {
                 width = opt.width_microns;
                 height = opt.height_microns;
@@ -60,7 +61,7 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // Priority 2 - Find A4 media size:
-        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+        for (MediaSize.Option opt : printer.getPrinterDescription().mediaSize.option) {
             if (opt.name == MediaSize.Name.ISO_A4) {
                 width = opt.width_microns;
                 height = opt.height_microns;
@@ -70,7 +71,7 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // Priority 3 - return default media size:
-        for (MediaSize.Option opt : printer.getPrinterDescription().media_size.option) {
+        for (MediaSize.Option opt : printer.getPrinterDescription().mediaSize.option) {
             if (opt.is_default) {
                 width = opt.width_microns;
                 height = opt.height_microns;
@@ -80,8 +81,8 @@ public class GCPClient implements CloudPrintConsts {
         }
 
         // Fallback - return the first media size:
-        width = printer.getPrinterDescription().media_size.option.get(0).width_microns;
-        height = printer.getPrinterDescription().media_size.option.get(0).height_microns;
+        width = printer.getPrinterDescription().mediaSize.option.get(0).width_microns;
+        height = printer.getPrinterDescription().mediaSize.option.get(0).height_microns;
         return new Pair<>(width,height);
     }
 
@@ -148,8 +149,12 @@ public class GCPClient implements CloudPrintConsts {
             mediaSize.height_microns = 220000;
             mediaSize.is_continuous_feed = true;
 
+            com.jmrodrigg.model.CJT.Color color = new com.jmrodrigg.model.CJT.Color();
+            color.type = PrintingColor.Type.STANDARD_COLOR;
+
             printTicket = new PrintTicket.PrintTicketBuilder()
                     .mediaSize(mediaSize)
+                    .color(color)
                     .build();
             // TODO Work In Progress
         }

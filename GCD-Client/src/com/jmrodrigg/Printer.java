@@ -1,8 +1,6 @@
 package com.jmrodrigg;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.jmrodrigg.model.CDD.*;
 
 import java.util.List;
@@ -18,13 +16,6 @@ public class Printer {
     private String displayName;
 
     private PrinterDescription printerDescription;
-
-    public Printer(String printerid, String status, String displayName) {
-        this.printerid = printerid;
-        this.status = status;
-        this.displayName = displayName;
-        this.printerDescription = null;
-    }
 
     public Printer(JsonObject object) {
         this.printerid = object.getAsJsonObject().get("id").getAsString();
@@ -48,31 +39,7 @@ public class Printer {
     }
 
     public void setPrinterDescription(JsonObject printerDescription) {
-        Gson gson = new Gson();
-
-        List<SupportedContentType> supported_content_types = gson.fromJson(printerDescription.get("supported_content_type"), new TypeToken<List<SupportedContentType>>(){}.getType());
-        PrintingSpeed printing_speed = gson.fromJson(printerDescription.get("printing_speed"), PrintingSpeed.class);
-        List<Marker> marker = gson.fromJson(printerDescription.get("marker"), new TypeToken<List<Marker>>(){}.getType());
-        List<Cover> covers = gson.fromJson(printerDescription.get("cover"), new TypeToken<List<Cover>>(){}.getType());
-        List<MediaPath> media_paths = gson.fromJson(printerDescription.get("media_path"), new TypeToken<List<MediaPath>>(){}.getType());
-        Color color = gson.fromJson(printerDescription.get("color"), Color.class);
-        List<VendorCapability> vendor_capabilities = gson.fromJson(printerDescription.get("vendor_capability"), new TypeToken<List<VendorCapability>>(){}.getType());
-        Copies copies = gson.fromJson(printerDescription.get("copies"), Copies.class);
-        Margins margins = gson.fromJson(printerDescription.get("margins"), Margins.class);
-        MediaSize media_size = gson.fromJson(printerDescription.get("media_size"), MediaSize.class);
-
-        this.printerDescription = new PrinterDescription.PrinterDescriptionBuilder()
-                .supportedContentTypes(supported_content_types)
-                .printingSpeed(printing_speed)
-                .markers(marker)
-                .covers(covers)
-                .mediaPaths(media_paths)
-                .colors(color)
-                .vendorCapabilities(vendor_capabilities)
-                .copies(copies)
-                .margins(margins)
-                .mediaSizes(media_size)
-                .build();
+        this.printerDescription = new PrinterDescription(printerDescription);
     }
 
     public PrinterDescription getPrinterDescription() {
