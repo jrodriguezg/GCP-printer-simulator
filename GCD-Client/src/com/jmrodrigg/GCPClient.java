@@ -6,7 +6,6 @@ import com.google.gson.internal.Pair;
 import com.jmrodrigg.model.CDD.MediaSize;
 import com.jmrodrigg.model.CJT.*;
 import com.jmrodrigg.model.Utils.PrintingColor;
-import org.apache.http.HttpStatus;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

@@ -12,8 +12,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 
 import static com.jmrodrigg.Common.HTTP_TRANSPORT;
 import static com.jmrodrigg.Common.JSON_FACTORY;
@@ -49,7 +49,6 @@ public class OAuth {
     public boolean authorize(String user) throws SocketTimeoutException {
 
         try {
-            final String OAUTH_URL = "https://accounts.google.com/o/oauth2/token";
             final int PORT = 8080;
             final String DOMAIN = "127.0.0.1";
             final java.io.File DATA_STORE_DIR = new java.io.File(System.getProperty("user.home"), ".store/gcp_auth_store");
@@ -66,7 +65,7 @@ public class OAuth {
                     new ClientParametersAuthentication(
                             credentials.getClientID(), credentials.getClientSecret()),
                     credentials.getClientID(),
-                    AUTHORIZATION_SERVER_URL).setScopes(Arrays.asList(SCOPE))
+                    AUTHORIZATION_SERVER_URL).setScopes(Collections.singletonList(SCOPE))
                     .setDataStoreFactory(DATA_STORE_FACTORY).build();
             // authorize
             LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost(
