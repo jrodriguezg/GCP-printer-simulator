@@ -75,7 +75,7 @@ public class GCPClient implements CloudPrintConsts {
             // Search a roll media size:
             if (printer.getPrinterDescription() != null) jobMediaSize = findMediaSize(printer.getPrinterDescription().mediaSize.option);
 
-            if (jobMediaSize == null) {
+            if (jobMediaSize != null) {
                 if (jobMediaSize.first == null) {
                     scaled_height = jobMediaSize.second;
 
